@@ -221,10 +221,43 @@ const TEAM = [
 ];
 
 // Mots-clés école/cours pour les alternants (exclus du calcul de charge)
-const ALTERNANT_KEYWORDS = /\b(ecole|école|cours)\b/i;
+// Note : pas de \b sur les accents (É, é) — on utilise une fonction de test robuste
+function matchesAlternant(title) {
+  const t = title.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  return /(^|\s)(ecole|cours)(\s|$)/.test(t);
+}
 
-// Mots-clés congés / absence (tous membres) — déduits de la capacité
-const CONGES_KEYWORDS = /\b(cong[eé]s?|vacances?|rtt|repos|absence|férié|ferie|off|leave)\b/i;
+// Mots-clés congés / absence — déduits de la capacité
+function matchesConges(title) {
+  const t = title.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  return /(^|\s)(conge[s]?|vacances?|rtt|repos|absence|ferie[s]?|ferie|off|leave)(\s|$)/.test(t);
+}
+
+// Jours fériés français (année courante + suivante)
+function getFeriesFR(year) {
+  const f = [];
+  const add = (m, d) => f.push(`${year}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`);
+  add(1,1); add(5,1); add(5,8); add(7,14); add(8,15); add(11,1); add(11,11); add(12,25);
+  // Pâques (algorithme de Meeus/Jones/Butcher)
+  const a=year%19,b=Math.floor(year/100),c=year%100;
+  const d2=Math.floor(b/4),e=b%4,f2=Math.floor((b+8)/25),g=Math.floor((b-f2+1)/3);
+  const h=(19*a+b-d2-g+15)%30,i=Math.floor(c/4),k=c%4;
+  const l=(32+2*e+2*i-h-k)%7,m2=Math.floor((a+11*h+22*l)/451);
+  const month=Math.floor((h+l-7*m2+114)/31),day=((h+l-7*m2+114)%31)+1;
+  const paques = new Date(year,month-1,day);
+  // Lundi de Pâques
+  const lundi = new Date(paques); lundi.setDate(paques.getDate()+1);
+  add(lundi.getMonth()+1, lundi.getDate());
+  // Ascension (39j après Pâques)
+  const asc = new Date(paques); asc.setDate(paques.getDate()+39);
+  add(asc.getMonth()+1, asc.getDate());
+  // Lundi de Pentecôte (50j après Pâques)
+  const pent = new Date(paques); pent.setDate(paques.getDate()+50);
+  add(pent.getMonth()+1, pent.getDate());
+  return f;
+}
+const FERIES = new Set([...getFeriesFR(new Date().getFullYear()), ...getFeriesFR(new Date().getFullYear()+1)]);
+function isFerie(d) { return FERIES.has(d.toISOString().split('T')[0]); }
 
 const WEEK_H   = 37.5;
 const DAY_H    = WEEK_H / 5;
@@ -355,7 +388,7 @@ function weekNum(d) {
 function workDays(s,e) {
   let c=0,d=new Date(s); d.setHours(0,0,0,0);
   const ed=new Date(e); ed.setHours(0,0,0,0);
-  while(d<=ed){ if(d.getDay()!==0&&d.getDay()!==6)c++; d.setDate(d.getDate()+1); }
+  while(d<=ed){ if(d.getDay()!==0&&d.getDay()!==6&&!isFerie(d))c++; d.setDate(d.getDate()+1); }
   return c;
 }
 function fmt(d){ return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'short'}); }
@@ -409,7 +442,7 @@ function parseEvent(ev, isAlternant) {
   let title = raw, avecClient = true, type = 'AUTRE', client = null;
 
   // Alternant : détecter école/cours en priorité
-  if (isAlternant && ALTERNANT_KEYWORDS.test(title)) {
+  if (isAlternant && matchesAlternant(title)) {
     return { raw, type: 'FORMATION', avecClient: false, client: null };
   }
 
@@ -473,11 +506,7 @@ async function refresh() {
       const allItems = (cal.items||[]).filter(ev => ev.status !== 'cancelled');
 
       // Congés : événements all-day OU événements timés avec mot-clé congé
-      const congesItems = allItems.filter(ev => {
-        const title = (ev.summary||'').trim();
-        if (!CONGES_KEYWORDS.test(title)) return false;
-        return true; // all-day ou timé, on prend les deux
-      });
+      const congesItems = allItems.filter(ev => matchesConges((ev.summary||'').trim()));
       // Calculer les heures de congés : all-day → jours ouvrés × 7.5h, timé → durée réelle
       let congesH = 0;
       for (const ev of congesItems) {
@@ -498,7 +527,7 @@ async function refresh() {
       const realAvailH = Math.max(0, availH - congesH);
 
       // Événements timés hors congés
-      const events = allItems.filter(ev => !isAllDay(ev) && !CONGES_KEYWORDS.test(ev.summary||'')).map(ev => {
+      const events = allItems.filter(ev => !isAllDay(ev) && !matchesConges(ev.summary||'')).map(ev => {
         const parsed = parseEvent(ev, m.alternant);
         return { ...ev, _h:evH(ev), _type:parsed.type, _avecClient:parsed.avecClient, _client:parsed.client, _raw:parsed.raw };
       });

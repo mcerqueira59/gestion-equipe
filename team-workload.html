@@ -8,392 +8,483 @@
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f4f0; color: #2c2c2a; min-height: 100vh; }
-  
-  .header { background: #fff; border-bottom: 0.5px solid rgba(0,0,0,0.1); padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; }
-  .header h1 { font-size: 17px; font-weight: 500; }
-  .header .subtitle { font-size: 13px; color: #73726c; margin-top: 2px; }
-  
-  .controls { background: #fff; border-bottom: 0.5px solid rgba(0,0,0,0.1); padding: 12px 24px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-  
-  select, button { font-family: inherit; font-size: 13px; padding: 6px 12px; border: 0.5px solid rgba(0,0,0,0.2); border-radius: 8px; background: #fff; cursor: pointer; color: #2c2c2a; }
-  button.primary { background: #2c2c2a; color: #fff; border-color: #2c2c2a; display: flex; align-items: center; gap: 6px; }
-  button.primary:hover { background: #444; }
-  button:hover { background: #f5f4f0; }
-  button:disabled { opacity: 0.5; cursor: not-allowed; }
-  
-  .main { padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; }
-  
-  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
-  .metric-card { background: #f5f4f0; border-radius: 8px; padding: 14px; }
-  .metric-card .label { font-size: 12px; color: #73726c; margin-bottom: 6px; }
-  .metric-card .value { font-size: 22px; font-weight: 500; }
-  .metric-card .sub { font-size: 11px; color: #888780; margin-top: 2px; }
-  
-  .card { background: #fff; border: 0.5px solid rgba(0,0,0,0.1); border-radius: 12px; padding: 20px; }
-  .card h2 { font-size: 14px; font-weight: 500; margin-bottom: 16px; color: #444441; }
-  
-  .person-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-  .avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; flex-shrink: 0; }
-  .person-info { flex: 1; min-width: 0; }
-  .person-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .person-email { font-size: 11px; color: #888780; }
-  .bar-wrap { flex: 2; }
-  .bar-track { background: #f1efe8; border-radius: 4px; height: 8px; overflow: hidden; }
-  .bar-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
-  .bar-label { font-size: 11px; color: #73726c; margin-top: 3px; text-align: right; }
-  .status-badge { font-size: 11px; padding: 2px 8px; border-radius: 4px; white-space: nowrap; }
-  .status-ok { background: #eaf3de; color: #3b6d11; }
-  .status-warn { background: #faeeda; color: #854f0b; }
-  .status-over { background: #fcebeb; color: #a32d2d; }
 
-  .chart-wrap { position: relative; height: 220px; }
+  /* ── Setup screen ── */
+  #setup-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; }
+  .setup-card { background: #fff; border: 0.5px solid rgba(0,0,0,0.12); border-radius: 16px; padding: 36px; max-width: 480px; width: 100%; }
+  .setup-card h1 { font-size: 20px; font-weight: 500; margin-bottom: 6px; }
+  .setup-card .desc { font-size: 14px; color: #73726c; margin-bottom: 28px; line-height: 1.6; }
+  .setup-steps { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+  .step { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; }
+  .step-num { width: 22px; height: 22px; border-radius: 50%; background: #f1efe8; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; flex-shrink: 0; margin-top: 1px; }
+  .step a { color: #185FA5; text-decoration: none; }
+  .step a:hover { text-decoration: underline; }
+  .input-group { margin-bottom: 16px; }
+  .input-group label { display: block; font-size: 12px; color: #73726c; margin-bottom: 6px; font-weight: 500; letter-spacing: 0.02em; }
+  .input-group input { width: 100%; padding: 10px 12px; border: 0.5px solid rgba(0,0,0,0.2); border-radius: 8px; font-size: 13px; font-family: monospace; outline: none; }
+  .input-group input:focus { border-color: #534AB7; box-shadow: 0 0 0 3px rgba(83,74,183,0.1); }
+  .btn-primary { width: 100%; padding: 11px; background: #2c2c2a; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-family: inherit; cursor: pointer; font-weight: 500; }
+  .btn-primary:hover { background: #444; }
+  .hint { font-size: 12px; color: #888780; margin-top: 12px; line-height: 1.5; }
+
+  /* ── App screen ── */
+  #app-screen { display: none; flex-direction: column; min-height: 100vh; }
+  .header { background: #fff; border-bottom: 0.5px solid rgba(0,0,0,0.1); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .header-left { display: flex; align-items: center; gap: 8px; }
+  .header-left h1 { font-size: 16px; font-weight: 500; }
+  .header-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   
-  .event-list { display: flex; flex-direction: column; gap: 8px; max-height: 300px; overflow-y: auto; }
-  .event-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px; background: #f5f4f0; border-radius: 8px; }
-  .event-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+  select, button { font-family: inherit; font-size: 13px; padding: 6px 12px; border: 0.5px solid rgba(0,0,0,0.18); border-radius: 7px; background: #fff; cursor: pointer; color: #2c2c2a; }
+  button:hover { background: #f5f4f0; }
+  button.btn-signin { background: #185FA5; color: #fff; border-color: #185FA5; display: flex; align-items: center; gap: 6px; }
+  button.btn-signin:hover { background: #0C447C; }
+  button.btn-refresh { display: flex; align-items: center; gap: 5px; }
+  button:disabled { opacity: 0.45; cursor: not-allowed; }
+  .badge-signed { font-size: 12px; background: #eaf3de; color: #3b6d11; padding: 4px 10px; border-radius: 6px; display: flex; align-items: center; gap: 5px; }
+
+  .main { padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; flex: 1; }
+
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+  .metric { background: #f1efe8; border-radius: 8px; padding: 12px 14px; }
+  .metric .lbl { font-size: 11px; color: #73726c; margin-bottom: 4px; }
+  .metric .val { font-size: 22px; font-weight: 500; line-height: 1.2; }
+  .metric .sub { font-size: 11px; color: #888780; margin-top: 2px; }
+
+  .card { background: #fff; border: 0.5px solid rgba(0,0,0,0.1); border-radius: 12px; padding: 18px 20px; }
+  .card h2 { font-size: 13px; font-weight: 500; color: #444441; margin-bottom: 14px; }
+
+  .person-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .avatar { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 500; flex-shrink: 0; }
+  .person-info { min-width: 100px; max-width: 120px; }
+  .person-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .person-email { font-size: 11px; color: #888780; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar-wrap { flex: 1; }
+  .bar-track { background: #f1efe8; border-radius: 4px; height: 7px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; transition: width 0.7s cubic-bezier(.4,0,.2,1); }
+  .bar-label { font-size: 11px; color: #73726c; margin-top: 3px; text-align: right; }
+  .status { font-size: 11px; padding: 2px 7px; border-radius: 4px; white-space: nowrap; flex-shrink: 0; }
+  .s-ok   { background: #eaf3de; color: #3b6d11; }
+  .s-warn { background: #faeeda; color: #854f0b; }
+  .s-over { background: #fcebeb; color: #a32d2d; }
+
+  .chart-wrap { position: relative; height: 200px; }
+
+  .event-list { display: flex; flex-direction: column; gap: 7px; max-height: 280px; overflow-y: auto; }
+  .event-item { display: flex; gap: 10px; padding: 9px 11px; background: #f5f4f0; border-radius: 8px; align-items: flex-start; }
+  .event-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
   .event-title { font-size: 13px; font-weight: 500; }
-  .event-meta { font-size: 11px; color: #73726c; margin-top: 2px; }
-  
-  .loading { text-align: center; padding: 40px; color: #73726c; }
-  .spinner { width: 24px; height: 24px; border: 2px solid #d3d1c7; border-top-color: #2c2c2a; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
+  .event-meta { font-size: 11px; color: #73726c; margin-top: 1px; }
+
+  .loading { text-align: center; padding: 40px; color: #73726c; font-size: 14px; }
+  .spinner { width: 22px; height: 22px; border: 2px solid #d3d1c7; border-top-color: #2c2c2a; border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 12px; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  
-  .error-box { background: #fcebeb; border: 0.5px solid #f7c1c1; border-radius: 8px; padding: 14px; font-size: 13px; color: #791f1f; }
-  
-  .tabs { display: flex; gap: 4px; margin-bottom: 16px; }
-  .tab { font-size: 13px; padding: 6px 14px; border-radius: 6px; cursor: pointer; color: #73726c; border: none; background: transparent; }
-  .tab.active { background: #f1efe8; color: #2c2c2a; font-weight: 500; }
-  
-  .heatmap { display: grid; gap: 3px; }
-  .heatmap-cell { height: 28px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; }
-  
-  .ai-box { background: #f5f4f0; border-radius: 8px; padding: 14px; font-size: 13px; line-height: 1.6; color: #444441; white-space: pre-wrap; }
-  
-  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
-  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #73726c; }
-  .legend-dot { width: 10px; height: 10px; border-radius: 2px; }
+
+  .notice { background: #faeeda; border: 0.5px solid #fac775; border-radius: 8px; padding: 12px 14px; font-size: 13px; color: #633806; line-height: 1.5; }
+  .notice strong { font-weight: 500; }
+
+  .legend { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #73726c; }
+  .legend-dot { width: 9px; height: 9px; border-radius: 2px; }
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div>
-    <div style="display:flex;align-items:center;gap:8px;">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+<!-- ═══════════════════════════════
+     SETUP SCREEN
+════════════════════════════════ -->
+<div id="setup-screen">
+  <div class="setup-card">
+    <h1>⚙️ Configuration initiale</h1>
+    <p class="desc">Pour fonctionner de façon autonome, l'app a besoin d'un identifiant OAuth Google. C'est gratuit et prend ~5 minutes.</p>
+
+    <div class="setup-steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div>Allez sur <a href="https://console.cloud.google.com" target="_blank">console.cloud.google.com</a> → créez un projet</div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div>Activez l'<a href="https://console.cloud.google.com/apis/library/calendar-json.googleapis.com" target="_blank">API Google Calendar</a></div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div><a href="https://console.cloud.google.com/apis/credentials" target="_blank">Credentials</a> → + Créer → OAuth Client ID → <strong>Application Web</strong> → ajoutez <code style="font-size:11px;background:#f1efe8;padding:1px 5px;border-radius:3px">http://localhost</code> et l'URL de ce fichier en origines JS autorisées</div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div>Copiez le <strong>Client ID</strong> ici</div>
+      </div>
+    </div>
+
+    <div class="input-group">
+      <label>CLIENT ID GOOGLE OAUTH</label>
+      <input type="text" id="client-id-input" placeholder="XXXXX.apps.googleusercontent.com" />
+    </div>
+
+    <button class="btn-primary" onclick="saveConfig()">Enregistrer et lancer l'app</button>
+    <p class="hint">Le Client ID est stocké localement dans votre navigateur. Vous ne le saisirez qu'une seule fois.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════
+     APP SCREEN
+════════════════════════════════ -->
+<div id="app-screen">
+  <div class="header">
+    <div class="header-left">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
       <h1>Charge équipe itroom</h1>
     </div>
-    <div class="subtitle">Suivi via Google Calendar</div>
-  </div>
-  <div style="font-size:12px;color:#888780;" id="last-updated"></div>
-</div>
-
-<div class="controls">
-  <select id="period-select" onchange="onPeriodChange()">
-    <option value="week">Cette semaine</option>
-    <option value="next_week">Semaine prochaine</option>
-    <option value="month">Ce mois</option>
-    <option value="two_weeks">2 prochaines semaines</option>
-  </select>
-  <button class="primary" onclick="loadData()" id="refresh-btn">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
-    Actualiser
-  </button>
-  <div style="margin-left:auto;font-size:12px;color:#888780;">5 membres · Google Calendar</div>
-</div>
-
-<div class="main">
-  <div id="content">
-    <div class="loading">
-      <div class="spinner"></div>
-      Connexion à Google Calendar...
+    <div class="header-right">
+      <select id="period-select" onchange="refresh()">
+        <option value="week">Cette semaine</option>
+        <option value="next_week">Semaine prochaine</option>
+        <option value="two_weeks">2 prochaines semaines</option>
+        <option value="month">Ce mois</option>
+      </select>
+      <div id="auth-area"></div>
+      <button class="btn-refresh" onclick="refresh()" id="refresh-btn" disabled>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+        Actualiser
+      </button>
+      <button onclick="resetConfig()" style="font-size:11px;color:#888780;border-color:transparent">⚙ Config</button>
     </div>
   </div>
+  <div class="main" id="main-content">
+    <div class="loading"><div class="spinner"></div>Connexion à Google...</div>
+  </div>
 </div>
 
+<!-- Google Identity Services -->
+<script src="https://accounts.google.com/gsi/client" async></script>
+
 <script>
+// ─── Config ───────────────────────────────────────────
 const TEAM = [
-  { id: 'lklapka',    email: 'lklapka@itroom.fr',    name: 'L. Klapka',    initials: 'LK', color: '#534AB7' },
-  { id: 'fkosinski',  email: 'fkosinski@itroom.fr',  name: 'F. Kosinski',  initials: 'FK', color: '#0F6E56' },
-  { id: 'mlepoutre',  email: 'mlepoutre@itroom.fr',  name: 'M. Lepoutre',  initials: 'ML', color: '#993C1D' },
-  { id: 'guhlenbusch',email: 'guhlenbusch@itroom.fr',name: 'G. Uhlenbusch',initials: 'GU', color: '#993556' },
-  { id: 'mcerqueira', email: 'mcerqueira@itroom.fr', name: 'M. Cerqueira',  initials: 'MC', color: '#185FA5' },
+  { email: 'lklapka@itroom.fr',     name: 'L. Klapka',     initials: 'LK', color: '#534AB7' },
+  { email: 'fkosinski@itroom.fr',   name: 'F. Kosinski',   initials: 'FK', color: '#0F6E56' },
+  { email: 'mlepoutre@itroom.fr',   name: 'M. Lepoutre',   initials: 'ML', color: '#993C1D' },
+  { email: 'guhlenbusch@itroom.fr', name: 'G. Uhlenbusch', initials: 'GU', color: '#993556' },
+  { email: 'mcerqueira@itroom.fr',  name: 'M. Cerqueira',  initials: 'MC', color: '#185FA5' },
 ];
+const SCOPES = 'https://www.googleapis.com/auth/calendar.readonly';
+const WORKING_HOURS_PER_DAY = 8;
 
-const BAR_COLORS = ['#534AB7','#0F6E56','#993C1D','#993556','#185FA5'];
+let tokenClient = null;
+let accessToken = null;
+let chartInst = null;
 
-let currentData = null;
-let chartInstance = null;
+// ─── Setup / Config ───────────────────────────────────
+function getClientId() { return localStorage.getItem('gcal_client_id') || ''; }
 
-function getDateRange(period) {
-  const now = new Date();
-  const monday = new Date(now);
-  monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
-  monday.setHours(0,0,0,0);
-  
-  let start, end;
-  if (period === 'week') {
-    start = monday;
-    end = new Date(monday); end.setDate(monday.getDate() + 6);
-  } else if (period === 'next_week') {
-    start = new Date(monday); start.setDate(monday.getDate() + 7);
-    end = new Date(start); end.setDate(start.getDate() + 6);
-  } else if (period === 'month') {
-    start = new Date(now.getFullYear(), now.getMonth(), 1);
-    end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-  } else {
-    start = monday;
-    end = new Date(monday); end.setDate(monday.getDate() + 13);
+function saveConfig() {
+  const v = document.getElementById('client-id-input').value.trim();
+  if (!v || !v.includes('.apps.googleusercontent.com')) {
+    alert('Le Client ID semble invalide. Il doit terminer par .apps.googleusercontent.com');
+    return;
   }
-  return { start, end };
+  localStorage.setItem('gcal_client_id', v);
+  showApp();
 }
 
-function fmtDate(d) {
-  return d.toLocaleDateString('fr-FR', { day:'2-digit', month:'short' });
+function resetConfig() {
+  if (!confirm('Réinitialiser la configuration ?')) return;
+  localStorage.removeItem('gcal_client_id');
+  accessToken = null;
+  location.reload();
 }
 
-function onPeriodChange() { loadData(); }
+function showApp() {
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'flex';
+  initGoogleAuth();
+}
 
-async function loadData() {
+// ─── Google Auth ──────────────────────────────────────
+function initGoogleAuth() {
+  const clientId = getClientId();
+  if (!clientId) { showSetup(); return; }
+
+  // Wait for GSI to load
+  const wait = setInterval(() => {
+    if (window.google && google.accounts) {
+      clearInterval(wait);
+      tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: clientId,
+        scope: SCOPES,
+        callback: (resp) => {
+          if (resp.error) { showError('Erreur d\'authentification : ' + resp.error); return; }
+          accessToken = resp.access_token;
+          document.getElementById('auth-area').innerHTML = `<span class="badge-signed">✓ Connecté</span>`;
+          document.getElementById('refresh-btn').disabled = false;
+          refresh();
+        }
+      });
+      renderSignInButton();
+    }
+  }, 200);
+}
+
+function renderSignInButton() {
+  document.getElementById('auth-area').innerHTML = `
+    <button class="btn-signin" onclick="signIn()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>
+      Se connecter
+    </button>`;
+  document.getElementById('main-content').innerHTML = `
+    <div class="notice"><strong>Cliquez sur "Se connecter"</strong> pour autoriser l'accès à Google Calendar et afficher la charge de votre équipe.</div>`;
+}
+
+function signIn() {
+  if (!tokenClient) { alert('Auth Google non prête, patientez...'); return; }
+  tokenClient.requestAccessToken({ prompt: '' });
+}
+
+// ─── Date helpers ─────────────────────────────────────
+function getRange(period) {
+  const now = new Date();
+  const dow = (now.getDay() + 6) % 7;
+  const mon = new Date(now); mon.setDate(now.getDate() - dow); mon.setHours(0,0,0,0);
+
+  let s, e;
+  if (period === 'week')       { s = mon; e = new Date(mon); e.setDate(mon.getDate() + 6); }
+  else if (period === 'next_week') { s = new Date(mon); s.setDate(mon.getDate()+7); e = new Date(s); e.setDate(s.getDate()+6); }
+  else if (period === 'two_weeks'){ s = mon; e = new Date(mon); e.setDate(mon.getDate()+13); }
+  else { s = new Date(now.getFullYear(), now.getMonth(), 1); e = new Date(now.getFullYear(), now.getMonth()+1, 0); }
+  e.setHours(23,59,59);
+  return { s, e };
+}
+
+function fmtDate(d) { return d.toLocaleDateString('fr-FR', {day:'2-digit', month:'short'}); }
+function fmtDay(d)  { return d.toLocaleDateString('fr-FR', {weekday:'short', day:'2-digit', month:'short'}); }
+function fmtTime(d) { return d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}); }
+function isWeekend(d) { const w = d.getDay(); return w === 0 || w === 6; }
+
+// ─── Calendar API calls ───────────────────────────────
+async function gcalList(email, timeMin, timeMax) {
+  const params = new URLSearchParams({
+    timeMin: timeMin.toISOString(),
+    timeMax: timeMax.toISOString(),
+    singleEvents: 'true',
+    orderBy: 'startTime',
+    maxResults: '2500',
+    showDeleted: 'false',
+  });
+  const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(email)}/events?${params}`;
+  const r = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } });
+  if (r.status === 403 || r.status === 404) return null; // calendar not shared / not accessible
+  if (!r.ok) throw new Error(`API ${r.status} for ${email}`);
+  return r.json();
+}
+
+function eventDurationH(ev) {
+  if (!ev.start) return 0;
+  if (ev.start.date) return 0; // all-day → ignore for hour calc
+  const s = new Date(ev.start.dateTime);
+  const e = new Date(ev.end.dateTime);
+  return Math.max(0, (e - s) / 3600000);
+}
+
+function eventDateStr(ev) {
+  if (!ev.start) return '';
+  if (ev.start.date) return ev.start.date;
+  return new Date(ev.start.dateTime).toISOString().split('T')[0];
+}
+
+// ─── Main refresh ──────────────────────────────────────
+async function refresh() {
+  if (!accessToken) { signIn(); return; }
   const btn = document.getElementById('refresh-btn');
   btn.disabled = true;
   const period = document.getElementById('period-select').value;
-  const { start, end } = getDateRange(period);
+  const { s, e } = getRange(period);
 
-  document.getElementById('content').innerHTML = `
-    <div class="loading">
-      <div class="spinner"></div>
-      Récupération des événements via Google Calendar...<br>
-      <span style="font-size:12px;margin-top:6px;display:block">Du ${fmtDate(start)} au ${fmtDate(end)}</span>
-    </div>`;
+  document.getElementById('main-content').innerHTML = `
+    <div class="loading"><div class="spinner"></div>Chargement des calendriers…<br>
+    <span style="font-size:12px;color:#888780;margin-top:4px;display:block">Du ${fmtDate(s)} au ${fmtDate(e)}</span></div>`;
 
   try {
-    const result = await fetchTeamEvents(start, end);
-    currentData = result;
-    renderDashboard(result, start, end);
-    document.getElementById('last-updated').textContent = 'Mis à jour ' + new Date().toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'});
-  } catch(e) {
-    document.getElementById('content').innerHTML = `<div class="error-box">Erreur lors de la récupération des données Google Calendar.<br><br><strong>Détail :</strong> ${e.message}</div>`;
+    // Fetch all team members in parallel
+    const results = await Promise.all(TEAM.map(m => gcalList(m.email, s, e)));
+    renderDashboard(results, s, e, period);
+  } catch(err) {
+    if (err.message && err.message.includes('401')) {
+      accessToken = null;
+      renderSignInButton();
+    } else {
+      showError(err.message);
+    }
   }
   btn.disabled = false;
 }
 
-async function fetchTeamEvents(start, end) {
-  const startISO = start.toISOString();
-  const endISO = new Date(end.getTime() + 86400000).toISOString();
-  
-  const prompt = `Tu es un assistant qui analyse la charge de travail d'une équipe via Google Calendar.
+// ─── Render ────────────────────────────────────────────
+function renderDashboard(results, rangeStart, rangeEnd, period) {
+  const DAYS_LABEL = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'];
 
-MEMBRES DE L'ÉQUIPE :
-${TEAM.map(m => `- ${m.name} (${m.email})`).join('\n')}
+  // Build day list (weekdays only)
+  const dayList = [];
+  const cur = new Date(rangeStart);
+  while (cur <= rangeEnd) {
+    if (!isWeekend(cur)) dayList.push(new Date(cur));
+    cur.setDate(cur.getDate() + 1);
+  }
 
-PÉRIODE : du ${start.toLocaleDateString('fr-FR')} au ${end.toLocaleDateString('fr-FR')}
+  // Process each member
+  const memberData = TEAM.map((member, i) => {
+    const calData = results[i];
+    if (!calData) return { ...member, accessible: false, events: [], totalH: 0, totalEvt: 0, byDay: {} };
 
-Instructions :
-1. Récupère les événements Google Calendar pour chaque membre de l'équipe pour cette période. Utilise l'email de chaque personne pour chercher leurs calendriers.
-2. Pour chaque membre, calcule :
-   - Le nombre total d'événements/réunions
-   - Le nombre total d'heures de réunions (en estimant 1h par défaut si pas de durée)
-   - Les jours les plus chargés
-3. Identifie les créneaux de surcharge (>6h de réunions/jour)
-4. Liste les 5 prochains événements importants de l'équipe
+    const events = (calData.items || []).filter(ev => ev.status !== 'cancelled' && !isAllDay(ev));
+    const byDay = {};
+    let totalH = 0, totalEvt = 0;
+    const overloaded = [];
 
-Réponds UNIQUEMENT avec un JSON valide (sans backticks, sans explication), avec cette structure exacte :
-{
-  "members": [
-    {
-      "email": "email@itroom.fr",
-      "name": "Prénom Nom",
-      "total_events": 12,
-      "total_hours": 18.5,
-      "busiest_day": "Mardi 8 avril",
-      "busiest_day_hours": 6.5,
-      "events_per_day": {"Lun": 3, "Mar": 5, "Mer": 2, "Jeu": 4, "Ven": 1},
-      "overloaded_days": ["Mardi 8 avril"]
+    for (const ev of events) {
+      const dStr = eventDateStr(ev);
+      const h = eventDurationH(ev);
+      if (!byDay[dStr]) byDay[dStr] = { h: 0, count: 0 };
+      byDay[dStr].h += h;
+      byDay[dStr].count += 1;
+      totalH += h;
+      totalEvt += 1;
     }
-  ],
-  "team_events": [
-    {
-      "title": "Réunion équipe",
-      "date": "Lundi 7 avril",
-      "time": "10:00",
-      "duration_h": 1,
-      "attendees": ["lklapka@itroom.fr", "fkosinski@itroom.fr"]
-    }
-  ],
-  "summary": "Résumé court de la charge de l'équipe cette semaine (2-3 phrases)"
-}`;
 
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 3000,
-      system: "Tu es un assistant d'analyse de charge de travail. Tu utilises Google Calendar MCP pour récupérer les événements réels. Tu réponds UNIQUEMENT en JSON valide, sans aucun texte avant ou après.",
-      messages: [{ role: 'user', content: prompt }],
-      mcp_servers: [
-        { type: 'url', url: 'https://gcal.mcp.claude.com/mcp', name: 'google-calendar' }
-      ]
-    })
+    // Detect overloaded days
+    for (const [dStr, v] of Object.entries(byDay)) {
+      if (v.h >= WORKING_HOURS_PER_DAY * 0.75) overloaded.push(dStr);
+    }
+
+    // Find busiest day
+    let busiestDay = '', busiestH = 0;
+    for (const [dStr, v] of Object.entries(byDay)) {
+      if (v.h > busiestH) { busiestH = v.h; busiestDay = dStr; }
+    }
+
+    return { ...member, accessible: true, events, totalH, totalEvt, byDay, overloaded, busiestDay, busiestH };
   });
 
-  if (!response.ok) throw new Error(`API error: ${response.status}`);
-  const data = await response.json();
-  
-  // Extract text from response (may have mcp_tool_use blocks)
-  let text = '';
-  for (const block of data.content || []) {
-    if (block.type === 'text') text += block.text;
-  }
-  
-  // Clean and parse JSON
-  const clean = text.replace(/```json|```/g, '').trim();
-  try {
-    return JSON.parse(clean);
-  } catch(e) {
-    // Try to extract JSON from the text
-    const match = clean.match(/\{[\s\S]*\}/);
-    if (match) return JSON.parse(match[0]);
-    throw new Error('Réponse non parseable : ' + clean.substring(0, 200));
-  }
-}
+  // Team-wide events (events shared by 2+ members) for the next few events view
+  const allEvents = memberData.flatMap(m => (m.events || []).map(ev => ({ ...ev, _member: m })));
+  const upcoming = allEvents
+    .filter(ev => ev.start && ev.start.dateTime && new Date(ev.start.dateTime) >= new Date())
+    .sort((a, b) => new Date(a.start.dateTime) - new Date(b.start.dateTime))
+    .slice(0, 10);
 
-function getStatus(hours, maxH) {
-  const ratio = hours / maxH;
-  if (ratio >= 0.75) return { label: 'Surchargé', cls: 'status-over' };
-  if (ratio >= 0.5) return { label: 'Occupé', cls: 'status-warn' };
-  return { label: 'OK', cls: 'status-ok' };
-}
+  // Metrics
+  const accessible = memberData.filter(m => m.accessible);
+  const totalH = accessible.reduce((s, m) => s + m.totalH, 0);
+  const totalEvt = accessible.reduce((s, m) => s + m.totalEvt, 0);
+  const maxH = Math.max(...accessible.map(m => m.totalH), 1);
+  const avgH = accessible.length ? totalH / accessible.length : 0;
+  const overloadedCount = accessible.filter(m => (m.overloaded || []).length > 0).length;
 
-function renderDashboard(data, start, end) {
-  if (!data || !data.members) {
-    document.getElementById('content').innerHTML = '<div class="error-box">Données insuffisantes reçues.</div>';
-    return;
-  }
+  // Chart: hours per weekday per member
+  // Only show up to 5 representative days (Mon–Fri label)
+  const dayKeys = dayList.map(d => d.toISOString().split('T')[0]);
+  const dayLabels = dayList.map(d => d.toLocaleDateString('fr-FR', {weekday:'short', day:'2-digit'}));
 
-  const members = data.members || [];
-  const teamEvents = data.team_events || [];
-  const summary = data.summary || '';
-  
-  const totalHours = members.reduce((s, m) => s + (m.total_hours || 0), 0);
-  const totalEvents = members.reduce((s, m) => s + (m.total_events || 0), 0);
-  const maxH = Math.max(...members.map(m => m.total_hours || 0), 1);
-  const overloaded = members.filter(m => (m.overloaded_days || []).length > 0).length;
-  const avgH = members.length ? (totalHours / members.length).toFixed(1) : 0;
+  const datasets = memberData.filter(m => m.accessible).map((m, i) => ({
+    label: m.name,
+    data: dayKeys.map(k => +(m.byDay[k]?.h || 0).toFixed(1)),
+    backgroundColor: m.color + 'bb',
+    borderColor: m.color,
+    borderWidth: 1,
+    borderRadius: 3,
+  }));
 
-  const days = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'];
-  
-  // Build chart datasets
-  const datasets = members.map((m, i) => {
-    const mem = TEAM.find(t => t.email === m.email) || TEAM[i] || {};
-    return {
-      label: mem.name || m.name,
-      data: days.map(d => (m.events_per_day || {})[d] || 0),
-      backgroundColor: BAR_COLORS[i] + 'cc',
-      borderColor: BAR_COLORS[i],
-      borderWidth: 1,
-      borderRadius: 3,
-    };
-  });
-
-  document.getElementById('content').innerHTML = `
+  document.getElementById('main-content').innerHTML = `
     <div class="metrics">
-      <div class="metric-card">
-        <div class="label">Total événements</div>
-        <div class="value">${totalEvents}</div>
-        <div class="sub">sur la période</div>
-      </div>
-      <div class="metric-card">
-        <div class="label">Heures de réunion</div>
-        <div class="value">${totalHours.toFixed(0)}h</div>
-        <div class="sub">équipe complète</div>
-      </div>
-      <div class="metric-card">
-        <div class="label">Moy. par personne</div>
-        <div class="value">${avgH}h</div>
-        <div class="sub">par semaine</div>
-      </div>
-      <div class="metric-card">
-        <div class="label">Surcharges détectées</div>
-        <div class="value" style="color:${overloaded > 0 ? '#a32d2d' : '#3b6d11'}">${overloaded}</div>
-        <div class="sub">membres concernés</div>
-      </div>
+      <div class="metric"><div class="lbl">Événements</div><div class="val">${totalEvt}</div><div class="sub">équipe · période</div></div>
+      <div class="metric"><div class="lbl">Heures de réunion</div><div class="val">${totalH.toFixed(0)}h</div><div class="sub">total équipe</div></div>
+      <div class="metric"><div class="lbl">Moy. par personne</div><div class="val">${avgH.toFixed(1)}h</div><div class="sub">sur la période</div></div>
+      <div class="metric"><div class="lbl">Surcharges</div><div class="val" style="color:${overloadedCount > 0 ? '#a32d2d' : '#3b6d11'}">${overloadedCount}</div><div class="sub">membres concernés</div></div>
     </div>
 
-    ${summary ? `<div class="card"><h2>Analyse IA</h2><div class="ai-box">${summary}</div></div>` : ''}
+    ${memberData.some(m => !m.accessible) ? `
+    <div class="notice"><strong>Calendriers non accessibles :</strong> ${memberData.filter(m=>!m.accessible).map(m=>m.name).join(', ')}.<br>
+    Ils doivent partager leur calendrier Google avec votre compte pour apparaître ici.</div>` : ''}
 
     <div class="card">
-      <h2>Charge par membre · ${fmtDate(start)} – ${fmtDate(end)}</h2>
-      ${members.map((m, i) => {
-        const mem = TEAM.find(t => t.email === m.email) || TEAM[i] || {};
-        const pct = Math.round(((m.total_hours || 0) / maxH) * 100);
-        const st = getStatus(m.total_hours || 0, maxH);
+      <h2>Charge par membre · ${fmtDate(rangeStart)} – ${fmtDate(rangeEnd)}</h2>
+      ${memberData.map(m => {
+        const pct = maxH > 0 ? Math.round((m.totalH / maxH) * 100) : 0;
+        const st = m.accessible
+          ? (m.totalH >= maxH * 0.75 ? {l:'Surchargé', c:'s-over'} : m.totalH >= maxH * 0.45 ? {l:'Occupé', c:'s-warn'} : {l:'OK', c:'s-ok'})
+          : {l:'Non partagé', c:'s-warn'};
         return `
         <div class="person-row">
-          <div class="avatar" style="background:${mem.color}22;color:${mem.color}">${mem.initials || '??'}</div>
+          <div class="avatar" style="background:${m.color}22;color:${m.color}">${m.initials}</div>
           <div class="person-info">
-            <div class="person-name">${mem.name || m.name}</div>
+            <div class="person-name">${m.name}</div>
             <div class="person-email">${m.email}</div>
           </div>
           <div class="bar-wrap">
-            <div class="bar-track">
-              <div class="bar-fill" style="width:${pct}%;background:${mem.color}"></div>
-            </div>
-            <div class="bar-label">${m.total_hours || 0}h · ${m.total_events || 0} évts</div>
+            <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${m.color}"></div></div>
+            <div class="bar-label">${m.accessible ? `${m.totalH.toFixed(1)}h · ${m.totalEvt} évts` : 'calendrier non accessible'}</div>
           </div>
-          <span class="status-badge ${st.cls}">${st.label}</span>
+          <span class="status ${st.c}">${st.l}</span>
         </div>`;
       }).join('')}
     </div>
 
     <div class="card">
-      <h2>Réunions par jour (par membre)</h2>
-      <div class="legend">
-        ${TEAM.map((m,i) => `<div class="legend-item"><div class="legend-dot" style="background:${BAR_COLORS[i]}"></div>${m.name}</div>`).join('')}
-      </div>
+      <h2>Heures de réunion par jour</h2>
+      <div class="legend">${memberData.filter(m=>m.accessible).map(m=>`<div class="legend-item"><div class="legend-dot" style="background:${m.color}"></div>${m.name}</div>`).join('')}</div>
       <div class="chart-wrap"><canvas id="barChart"></canvas></div>
     </div>
 
-    ${teamEvents.length > 0 ? `
+    ${upcoming.length > 0 ? `
     <div class="card">
-      <h2>Prochains événements équipe</h2>
+      <h2>Prochains événements</h2>
       <div class="event-list">
-        ${teamEvents.slice(0,8).map((ev, i) => `
-          <div class="event-item">
-            <div class="event-dot" style="background:${BAR_COLORS[i % BAR_COLORS.length]}"></div>
+        ${upcoming.map(ev => {
+          const start = new Date(ev.start.dateTime);
+          const m = ev._member;
+          return `<div class="event-item">
+            <div class="event-dot" style="background:${m.color}"></div>
             <div>
-              <div class="event-title">${ev.title}</div>
-              <div class="event-meta">${ev.date}${ev.time ? ' · ' + ev.time : ''}${ev.duration_h ? ' · ' + ev.duration_h + 'h' : ''}${ev.attendees && ev.attendees.length > 0 ? ' · ' + ev.attendees.length + ' participants' : ''}</div>
+              <div class="event-title">${ev.summary || '(sans titre)'}</div>
+              <div class="event-meta">${fmtDay(start)} · ${fmtTime(start)} · ${m.name} · ${(eventDurationH(ev)).toFixed(0)}h</div>
             </div>
-          </div>
-        `).join('')}
+          </div>`;
+        }).join('')}
       </div>
     </div>` : ''}
   `;
 
-  // Render chart
+  // Chart
   setTimeout(() => {
     const ctx = document.getElementById('barChart');
     if (!ctx) return;
-    if (chartInstance) chartInstance.destroy();
-    chartInstance = new Chart(ctx, {
+    if (chartInst) chartInst.destroy();
+    chartInst = new Chart(ctx, {
       type: 'bar',
-      data: { labels: days, datasets },
+      data: { labels: dayLabels, datasets },
       options: {
-        responsive: true,
-        maintainAspectRatio: false,
+        responsive: true, maintainAspectRatio: false,
         plugins: { legend: { display: false } },
         scales: {
-          x: { stacked: false, grid: { display: false }, ticks: { font: { size: 12 } } },
-          y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.06)' }, ticks: { font: { size: 11 }, stepSize: 1 } }
+          x: { grid: { display: false }, ticks: { font: { size: 11 }, autoSkip: false, maxRotation: 45 } },
+          y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 11 }, callback: v => v + 'h' } }
         }
       }
     });
   }, 50);
 }
 
-// Auto-load on start
-loadData();
+function isAllDay(ev) { return !!(ev.start && ev.start.date && !ev.start.dateTime); }
+function showError(msg) {
+  document.getElementById('main-content').innerHTML = `<div class="notice" style="background:#fcebeb;border-color:#f7c1c1;color:#791f1f"><strong>Erreur :</strong> ${msg}</div>`;
+}
+
+// ─── Boot ──────────────────────────────────────────────
+if (getClientId()) {
+  showApp();
+} else {
+  document.getElementById('setup-screen').style.display = 'flex';
+  document.getElementById('app-screen').style.display = 'none';
+}
 </script>
 </body>
 </html>

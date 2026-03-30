@@ -359,6 +359,39 @@ function evH(ev){ if(!ev.start||isAllDay(ev))return 0; return Math.max(0,(new Da
 function showError(m){ document.getElementById('main-content').innerHTML=`<div class="notice" style="background:#fcebeb;border-color:#f7c1c1;color:#791f1f"><strong>Erreur :</strong> ${m}</div>`; }
 function loadColor(p){ return p>=90?'#a32d2d':p>=65?'#854f0b':p>=35?'#185FA5':'#3b6d11'; }
 
+// Fusionne les plages qui se chevauchent et retourne le total d'heures réelles occupées
+// Ex: 8h-12h + 9h-11h → 4h (pas 6h)
+function mergedHours(events) {
+  const intervals = events
+    .filter(ev => ev.start && ev.start.dateTime)
+    .map(ev => [new Date(ev.start.dateTime).getTime(), new Date(ev.end.dateTime).getTime()])
+    .sort((a, b) => a[0] - b[0]);
+  if (!intervals.length) return 0;
+  const merged = [[...intervals[0]]];
+  for (let i = 1; i < intervals.length; i++) {
+    const last = merged[merged.length - 1];
+    if (intervals[i][0] < last[1]) last[1] = Math.max(last[1], intervals[i][1]);
+    else merged.push([...intervals[i]]);
+  }
+  return merged.reduce((sum, [s, e]) => sum + (e - s), 0) / 3600000;
+}
+
+// Idem mais filtrée sur une fenêtre temporelle (pour les sous-périodes du graphique)
+function mergedHoursInRange(events, start, end) {
+  const intervals = events
+    .filter(ev => ev.start && ev.start.dateTime && new Date(ev.start.dateTime) >= start && new Date(ev.start.dateTime) <= end)
+    .map(ev => [new Date(ev.start.dateTime).getTime(), new Date(ev.end.dateTime).getTime()])
+    .sort((a, b) => a[0] - b[0]);
+  if (!intervals.length) return 0;
+  const merged = [[...intervals[0]]];
+  for (let i = 1; i < intervals.length; i++) {
+    const last = merged[merged.length - 1];
+    if (intervals[i][0] < last[1]) last[1] = Math.max(last[1], intervals[i][1]);
+    else merged.push([...intervals[i]]);
+  }
+  return merged.reduce((sum, [s, e]) => sum + (e - s), 0) / 3600000;
+}
+
 // ═══ Parse event title ══════════════════════════════
 // Format: [P] TYPE Client – description
 function parseEvent(ev) {
@@ -425,9 +458,12 @@ async function refresh() {
         const parsed = parseEvent(ev);
         return { ...ev, _h:evH(ev), _type:parsed.type, _avecClient:parsed.avecClient, _client:parsed.client, _raw:parsed.raw };
       });
-      let totalH=0, byType={}, byClient={}, avecH=0, sansH=0;
+      // totalH = heures réellement occupées (chevauchements fusionnés)
+      const totalH = mergedHours(events);
+      // byType / byClient / avec-sans : somme brute des durées individuelles
+      // (pour la répartition relative, les chevauchements sont rares entre types différents)
+      let byType={}, byClient={}, avecH=0, sansH=0;
       for (const ev of events) {
-        totalH += ev._h;
         byType[ev._type] = (byType[ev._type]||0) + ev._h;
         if (ev._client) byClient[ev._client] = (byClient[ev._client]||0) + ev._h;
         if (ev._avecClient) avecH += ev._h; else sansH += ev._h;
@@ -503,7 +539,7 @@ function renderCharge(members, acc, s, e, label, wd, availH) {
     const ds = acc.map(m => ({
       label:m.name, borderColor:m.color, backgroundColor:m.color+'44',
       data: subP.map(sp => {
-        const spH = m.events.filter(ev=>{const d=new Date(ev.start.dateTime);return d>=sp.start&&d<=sp.end;}).reduce((s,ev)=>s+ev._h,0);
+        const spH = mergedHoursInRange(m.events, sp.start, sp.end);
         const spAvail = workDays(sp.start,sp.end)*DAY_H;
         return spAvail>0?+Math.min(100,(spH/spAvail)*100).toFixed(1):0;
       }),

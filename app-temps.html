@@ -213,21 +213,30 @@ button:disabled { opacity:.4; cursor:not-allowed; }
 <script>
 // ═══ Constants ═══════════════════════════════════════
 const TEAM = [
-  { email:'lklapka@itroom.fr',     name:'L. Klapka',     initials:'LK', color:'#534AB7' },
-  { email:'fkosinski@itroom.fr',   name:'F. Kosinski',   initials:'FK', color:'#0F6E56' },
-  { email:'mlepoutre@itroom.fr',   name:'M. Lepoutre',   initials:'ML', color:'#993C1D' },
-  { email:'guhlenbusch@itroom.fr', name:'G. Uhlenbusch', initials:'GU', color:'#993556' },
-  { email:'mcerqueira@itroom.fr',  name:'M. Cerqueira',  initials:'MC', color:'#185FA5' },
+  { email:'lklapka@itroom.fr',     name:'L. Klapka',     initials:'LK', color:'#534AB7', alternant:false },
+  { email:'fkosinski@itroom.fr',   name:'F. Kosinski',   initials:'FK', color:'#0F6E56', alternant:false },
+  { email:'mlepoutre@itroom.fr',   name:'M. Lepoutre',   initials:'ML', color:'#993C1D', alternant:false },
+  { email:'guhlenbusch@itroom.fr', name:'G. Uhlenbusch', initials:'GU', color:'#993556', alternant:true  },
+  { email:'mcerqueira@itroom.fr',  name:'M. Cerqueira',  initials:'MC', color:'#185FA5', alternant:true  },
 ];
+
+// Mots-clés école/cours pour les alternants (exclus du calcul de charge)
+const ALTERNANT_KEYWORDS = /\b(ecole|école|cours)\b/i;
+
+// Mots-clés congés / absence (tous membres) — déduits de la capacité
+const CONGES_KEYWORDS = /\b(cong[eé]s?|vacances?|rtt|repos|absence|férié|ferie|off|leave)\b/i;
+
 const WEEK_H   = 37.5;
 const DAY_H    = WEEK_H / 5;
 const SCOPES   = 'https://www.googleapis.com/auth/calendar.readonly';
 
 const PRESTA_TYPES = {
-  PROP:    { label:'Force de proposition', color:'#534AB7', bg:'#EEEDFE', tc:'#3C3489' },
-  REGIE:   { label:'Régie / TMA',          color:'#0F6E56', bg:'#E1F5EE', tc:'#085041' },
-  INTERNE: { label:'Interne',              color:'#888780', bg:'#F1EFE8', tc:'#444441' },
-  AUTRE:   { label:'Non catégorisé',       color:'#D85A30', bg:'#FAECE7', tc:'#4A1B0C' },
+  PROP:      { label:'Force de proposition', color:'#534AB7', bg:'#EEEDFE', tc:'#3C3489' },
+  REGIE:     { label:'Régie / TMA',          color:'#0F6E56', bg:'#E1F5EE', tc:'#085041' },
+  INTERNE:   { label:'Interne',              color:'#888780', bg:'#F1EFE8', tc:'#444441' },
+  FORMATION: { label:'École / Cours',        color:'#BA7517', bg:'#FAEEDA', tc:'#633806' },
+  CONGES:    { label:'Congés / Absence',      color:'#185FA5', bg:'#E6F1FB', tc:'#0C447C' },
+  AUTRE:     { label:'Non catégorisé',       color:'#D85A30', bg:'#FAECE7', tc:'#4A1B0C' },
 };
 
 let tokenClient = null, accessToken = null;
@@ -394,9 +403,15 @@ function mergedHoursInRange(events, start, end) {
 
 // ═══ Parse event title ══════════════════════════════
 // Format: [P] TYPE Client – description
-function parseEvent(ev) {
+// Pour les alternants : "Ecole" ou "Cours" → type FORMATION, exclu de la charge
+function parseEvent(ev, isAlternant) {
   const raw = (ev.summary || '').trim();
   let title = raw, avecClient = true, type = 'AUTRE', client = null;
+
+  // Alternant : détecter école/cours en priorité
+  if (isAlternant && ALTERNANT_KEYWORDS.test(title)) {
+    return { raw, type: 'FORMATION', avecClient: false, client: null };
+  }
 
   // Check [P] prefix
   if (/^\[P\]/i.test(title)) {
@@ -454,22 +469,55 @@ async function refresh() {
     const members = TEAM.map((m,i) => {
       const cal = results[i];
       if (!cal) return { ...m, accessible:false, events:[], totalH:0, totalEvt:0, availH, dispoH:availH, loadPct:0, byType:{}, byClient:{}, avecH:0, sansH:0 };
-      const events = (cal.items||[]).filter(ev => ev.status!=='cancelled' && !isAllDay(ev)).map(ev => {
-        const parsed = parseEvent(ev);
+      // Événements toutes catégories (y compris all-day pour congés)
+      const allItems = (cal.items||[]).filter(ev => ev.status !== 'cancelled');
+
+      // Congés : événements all-day OU événements timés avec mot-clé congé
+      const congesItems = allItems.filter(ev => {
+        const title = (ev.summary||'').trim();
+        if (!CONGES_KEYWORDS.test(title)) return false;
+        return true; // all-day ou timé, on prend les deux
+      });
+      // Calculer les heures de congés : all-day → jours ouvrés × 7.5h, timé → durée réelle
+      let congesH = 0;
+      for (const ev of congesItems) {
+        if (isAllDay(ev)) {
+          // Compter les jours ouvrés couverts par l'événement all-day
+          const evStart = new Date(ev.start.date);
+          const evEnd   = new Date(ev.end.date); // end.date est exclusif dans l'API Google
+          evEnd.setDate(evEnd.getDate() - 1);    // rendre inclusif
+          // Intersection avec la période demandée
+          const capStart = evStart < s ? new Date(s) : evStart;
+          const capEnd   = evEnd   > e ? new Date(e) : evEnd;
+          congesH += workDays(capStart, capEnd) * DAY_H;
+        } else {
+          congesH += Math.max(0, (new Date(ev.end.dateTime) - new Date(ev.start.dateTime)) / 3600000);
+        }
+      }
+      // Capacité réelle = capacité brute − congés
+      const realAvailH = Math.max(0, availH - congesH);
+
+      // Événements timés hors congés
+      const events = allItems.filter(ev => !isAllDay(ev) && !CONGES_KEYWORDS.test(ev.summary||'')).map(ev => {
+        const parsed = parseEvent(ev, m.alternant);
         return { ...ev, _h:evH(ev), _type:parsed.type, _avecClient:parsed.avecClient, _client:parsed.client, _raw:parsed.raw };
       });
-      // totalH = heures réellement occupées (chevauchements fusionnés)
-      const totalH = mergedHours(events);
-      // byType / byClient / avec-sans : somme brute des durées individuelles
-      // (pour la répartition relative, les chevauchements sont rares entre types différents)
+      // Séparer école et travail
+      const workEvents = events.filter(ev => ev._type !== 'FORMATION');
+      const formationEvents = events.filter(ev => ev._type === 'FORMATION');
+      const formationH = formationEvents.reduce((s,ev) => s+ev._h, 0);
+      // totalH = heures réellement occupées hors école (chevauchements fusionnés)
+      const totalH = mergedHours(workEvents);
+      // Dispo = capacité réelle (hors congés) − école − travail
+      const dispoH = Math.max(0, realAvailH - formationH - totalH);
       let byType={}, byClient={}, avecH=0, sansH=0;
       for (const ev of events) {
         byType[ev._type] = (byType[ev._type]||0) + ev._h;
         if (ev._client) byClient[ev._client] = (byClient[ev._client]||0) + ev._h;
         if (ev._avecClient) avecH += ev._h; else sansH += ev._h;
       }
-      const loadPct = availH>0 ? Math.min(100,Math.round((totalH/availH)*100)) : 0;
-      return { ...m, accessible:true, events, totalH, totalEvt:events.length, availH, dispoH:Math.max(0,availH-totalH), loadPct, byType, byClient, avecH, sansH };
+      const loadPct = realAvailH>0 ? Math.min(100,Math.round((totalH/realAvailH)*100)) : 0;
+      return { ...m, accessible:true, events, workEvents, totalH, formationH, congesH, totalEvt:workEvents.length, availH, realAvailH, dispoH, loadPct, byType, byClient, avecH, sansH };
     });
 
     lastData = { members, s, e, label, wd, availH };
@@ -497,13 +545,14 @@ function renderView() {
 function renderCharge(members, acc, s, e, label, wd, availH) {
   const totalTeamH = acc.reduce((s,m)=>s+m.totalH,0);
   const totalDispo  = acc.reduce((s,m)=>s+m.dispoH,0);
-  const avgLoad     = acc.length&&availH>0 ? Math.round((totalTeamH/(acc.length*availH))*100) : 0;
+  const totalRealAvail = acc.reduce((s,m)=>s+(m.realAvailH||m.availH),0);
+  const avgLoad     = totalRealAvail>0 ? Math.round((totalTeamH/totalRealAvail)*100) : 0;
   const subP        = getSubPeriods(s,e);
 
   document.getElementById('main-content').innerHTML = `
     <div class="metrics">
       <div class="metric"><div class="lbl">Charge moy. équipe</div><div class="val" style="color:${loadColor(avgLoad)}">${avgLoad}%</div><div class="sub">${wd} jours ouvrés · ${WEEK_H}h/sem.</div></div>
-      <div class="metric"><div class="lbl">Heures de réunion</div><div class="val">${totalTeamH.toFixed(0)}h</div><div class="sub">/ ${(acc.length*availH).toFixed(0)}h dispo équipe</div></div>
+      <div class="metric"><div class="lbl">Heures de réunion</div><div class="val">${totalTeamH.toFixed(0)}h</div><div class="sub">/ ${totalRealAvail.toFixed(0)}h capacité réelle</div></div>
       <div class="metric"><div class="lbl">Disponibilité</div><div class="val" style="color:#0F6E56">${totalDispo.toFixed(0)}h</div><div class="sub">restantes équipe</div></div>
       <div class="metric"><div class="lbl">Surcharges</div><div class="val" style="color:${acc.filter(m=>m.loadPct>=90).length>0?'#a32d2d':'#3b6d11'}">${acc.filter(m=>m.loadPct>=90).length}</div><div class="sub">membres ≥ 90%</div></div>
     </div>
@@ -514,13 +563,21 @@ function renderCharge(members, acc, s, e, label, wd, availH) {
       <h2>Charge & disponibilité par membre · base ${WEEK_H}h/semaine</h2>
       <div class="member-grid">
         ${members.map(m => {
-          const lp=m.loadPct, dp=m.availH>0?Math.round((m.dispoH/m.availH)*100):0;
+          const lp=m.loadPct, dp=m.realAvailH>0?Math.round((m.dispoH/m.realAvailH)*100):0;
           const st=!m.accessible?{l:'Non partagé',c:'s-busy'}:lp>=90?{l:'Surchargé',c:'s-over'}:lp>=65?{l:'Occupé',c:'s-busy'}:lp>=35?{l:'Actif',c:'s-ok'}:{l:'Disponible',c:'s-free'};
+          const baseH = m.availH||1;
+          const fmtH  = m.formationH>0 ? `<div class="bar-row"><span class="bar-lbl" style="color:#BA7517">École</span><div class="bar-track"><div class="bar-fill" style="width:${Math.round((m.formationH/baseH)*100)}%;background:#EF9F27"></div></div><span class="bar-val">${m.formationH.toFixed(1)}h</span></div>` : '';
+          const fmtC  = m.congesH>0   ? `<div class="bar-row"><span class="bar-lbl" style="color:#185FA5">Congés</span><div class="bar-track"><div class="bar-fill" style="width:${Math.round((m.congesH/baseH)*100)}%;background:#378ADD"></div></div><span class="bar-val">${m.congesH.toFixed(1)}h</span></div>` : '';
           return `<div class="member-row">
             <div class="avatar" style="background:${m.color}20;color:${m.color}">${m.initials}</div>
-            <div class="member-info"><div class="member-name">${m.name}</div><div class="member-email">${m.email}</div></div>
+            <div class="member-info">
+              <div class="member-name">${m.name}${m.alternant?` <span style="font-size:10px;background:#FAEEDA;color:#633806;padding:1px 5px;border-radius:3px;vertical-align:middle">Alternant</span>`:''}</div>
+              <div class="member-email">${m.email}</div>
+            </div>
             <div class="bars-wrap">
               <div class="bar-row"><span class="bar-lbl">Charge</span><div class="bar-track"><div class="bar-fill" style="width:${lp}%;background:${m.color}"></div></div><span class="bar-val">${m.totalH.toFixed(1)}h</span></div>
+              ${fmtH}
+              ${fmtC}
               <div class="bar-row"><span class="bar-lbl">Dispo</span><div class="bar-track"><div class="bar-fill" style="width:${dp}%;background:#97C459"></div></div><span class="bar-val">${m.dispoH.toFixed(1)}h</span></div>
             </div>
             <div class="member-right"><span class="status ${st.c}">${st.l}</span><span style="font-size:12px;font-weight:500;color:${m.color}">${lp}%</span></div>
@@ -539,7 +596,7 @@ function renderCharge(members, acc, s, e, label, wd, availH) {
     const ds = acc.map(m => ({
       label:m.name, borderColor:m.color, backgroundColor:m.color+'44',
       data: subP.map(sp => {
-        const spH = mergedHoursInRange(m.events, sp.start, sp.end);
+        const spH = mergedHoursInRange(m.workEvents || m.events, sp.start, sp.end);
         const spAvail = workDays(sp.start,sp.end)*DAY_H;
         return spAvail>0?+Math.min(100,(spH/spAvail)*100).toFixed(1):0;
       }),

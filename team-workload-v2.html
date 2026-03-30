@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Charge équipe itroom</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f4f0; color: #2c2c2a; min-height: 100vh; }
+
+  /* ── Setup screen ── */
+  #setup-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; }
+  .setup-card { background: #fff; border: 0.5px solid rgba(0,0,0,0.12); border-radius: 16px; padding: 36px; max-width: 480px; width: 100%; }
+  .setup-card h1 { font-size: 20px; font-weight: 500; margin-bottom: 6px; }
+  .setup-card .desc { font-size: 14px; color: #73726c; margin-bottom: 28px; line-height: 1.6; }
+  .setup-steps { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+  .step { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; }
+  .step-num { width: 22px; height: 22px; border-radius: 50%; background: #f1efe8; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; flex-shrink: 0; margin-top: 1px; }
+  .step a { color: #185FA5; text-decoration: none; }
+  .step a:hover { text-decoration: underline; }
+  .input-group { margin-bottom: 16px; }
+  .input-group label { display: block; font-size: 12px; color: #73726c; margin-bottom: 6px; font-weight: 500; letter-spacing: 0.02em; }
+  .input-group input { width: 100%; padding: 10px 12px; border: 0.5px solid rgba(0,0,0,0.2); border-radius: 8px; font-size: 13px; font-family: monospace; outline: none; }
+  .input-group input:focus { border-color: #534AB7; box-shadow: 0 0 0 3px rgba(83,74,183,0.1); }
+  .btn-primary { width: 100%; padding: 11px; background: #2c2c2a; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-family: inherit; cursor: pointer; font-weight: 500; }
+  .btn-primary:hover { background: #444; }
+  .hint { font-size: 12px; color: #888780; margin-top: 12px; line-height: 1.5; }
+
+  /* ── App screen ── */
+  #app-screen { display: none; flex-direction: column; min-height: 100vh; }
+  .header { background: #fff; border-bottom: 0.5px solid rgba(0,0,0,0.1); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .header-left { display: flex; align-items: center; gap: 8px; }
+  .header-left h1 { font-size: 16px; font-weight: 500; }
+  .header-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  
+  select, button { font-family: inherit; font-size: 13px; padding: 6px 12px; border: 0.5px solid rgba(0,0,0,0.18); border-radius: 7px; background: #fff; cursor: pointer; color: #2c2c2a; }
+  button:hover { background: #f5f4f0; }
+  button.btn-signin { background: #185FA5; color: #fff; border-color: #185FA5; display: flex; align-items: center; gap: 6px; }
+  button.btn-signin:hover { background: #0C447C; }
+  button.btn-refresh { display: flex; align-items: center; gap: 5px; }
+  button:disabled { opacity: 0.45; cursor: not-allowed; }
+  .badge-signed { font-size: 12px; background: #eaf3de; color: #3b6d11; padding: 4px 10px; border-radius: 6px; display: flex; align-items: center; gap: 5px; }
+
+  .main { padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; flex: 1; }
+
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+  .metric { background: #f1efe8; border-radius: 8px; padding: 12px 14px; }
+  .metric .lbl { font-size: 11px; color: #73726c; margin-bottom: 4px; }
+  .metric .val { font-size: 22px; font-weight: 500; line-height: 1.2; }
+  .metric .sub { font-size: 11px; color: #888780; margin-top: 2px; }
+
+  .card { background: #fff; border: 0.5px solid rgba(0,0,0,0.1); border-radius: 12px; padding: 18px 20px; }
+  .card h2 { font-size: 13px; font-weight: 500; color: #444441; margin-bottom: 14px; }
+
+  .person-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .avatar { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 500; flex-shrink: 0; }
+  .person-info { min-width: 100px; max-width: 120px; }
+  .person-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .person-email { font-size: 11px; color: #888780; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar-wrap { flex: 1; }
+  .bar-track { background: #f1efe8; border-radius: 4px; height: 7px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; transition: width 0.7s cubic-bezier(.4,0,.2,1); }
+  .bar-label { font-size: 11px; color: #73726c; margin-top: 3px; text-align: right; }
+  .status { font-size: 11px; padding: 2px 7px; border-radius: 4px; white-space: nowrap; flex-shrink: 0; }
+  .s-ok   { background: #eaf3de; color: #3b6d11; }
+  .s-warn { background: #faeeda; color: #854f0b; }
+  .s-over { background: #fcebeb; color: #a32d2d; }
+
+  .chart-wrap { position: relative; height: 200px; }
+
+  .event-list { display: flex; flex-direction: column; gap: 7px; max-height: 280px; overflow-y: auto; }
+  .event-item { display: flex; gap: 10px; padding: 9px 11px; background: #f5f4f0; border-radius: 8px; align-items: flex-start; }
+  .event-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+  .event-title { font-size: 13px; font-weight: 500; }
+  .event-meta { font-size: 11px; color: #73726c; margin-top: 1px; }
+
+  .loading { text-align: center; padding: 40px; color: #73726c; font-size: 14px; }
+  .spinner { width: 22px; height: 22px; border: 2px solid #d3d1c7; border-top-color: #2c2c2a; border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 12px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .notice { background: #faeeda; border: 0.5px solid #fac775; border-radius: 8px; padding: 12px 14px; font-size: 13px; color: #633806; line-height: 1.5; }
+  .notice strong { font-weight: 500; }
+
+  .legend { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #73726c; }
+  .legend-dot { width: 9px; height: 9px; border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════
+     SETUP SCREEN
+════════════════════════════════ -->
+<div id="setup-screen">
+  <div class="setup-card">
+    <h1>⚙️ Configuration initiale</h1>
+    <p class="desc">Pour fonctionner de façon autonome, l'app a besoin d'un identifiant OAuth Google. C'est gratuit et prend ~5 minutes.</p>
+
+    <div class="setup-steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div>Allez sur <a href="https://console.cloud.google.com" target="_blank">console.cloud.google.com</a> → créez un projet</div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div>Activez l'<a href="https://console.cloud.google.com/apis/library/calendar-json.googleapis.com" target="_blank">API Google Calendar</a></div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div><a href="https://console.cloud.google.com/apis/credentials" target="_blank">Credentials</a> → + Créer → OAuth Client ID → <strong>Application Web</strong> → ajoutez <code style="font-size:11px;background:#f1efe8;padding:1px 5px;border-radius:3px">http://localhost</code> et l'URL de ce fichier en origines JS autorisées</div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div>Copiez le <strong>Client ID</strong> ici</div>
+      </div>
+    </div>
+
+    <div class="input-group">
+      <label>CLIENT ID GOOGLE OAUTH</label>
+      <input type="text" id="client-id-input" placeholder="XXXXX.apps.googleusercontent.com" />
+    </div>
+
+    <button class="btn-primary" onclick="saveConfig()">Enregistrer et lancer l'app</button>
+    <p class="hint">Le Client ID est stocké localement dans votre navigateur. Vous ne le saisirez qu'une seule fois.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════
+     APP SCREEN
+════════════════════════════════ -->
+<div id="app-screen">
+  <div class="header">
+    <div class="header-left">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      <h1>Charge équipe itroom</h1>
+    </div>
+    <div class="header-right">
+      <select id="period-select" onchange="refresh()">
+        <option value="week">Cette semaine</option>
+        <option value="next_week">Semaine prochaine</option>
+        <option value="two_weeks">2 prochaines semaines</option>
+        <option value="month">Ce mois</option>
+      </select>
+      <div id="auth-area"></div>
+      <button class="btn-refresh" onclick="refresh()" id="refresh-btn" disabled>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+        Actualiser
+      </button>
+      <button onclick="resetConfig()" style="font-size:11px;color:#888780;border-color:transparent">⚙ Config</button>
+    </div>
+  </div>
+  <div class="main" id="main-content">
+    <div class="loading"><div class="spinner"></div>Connexion à Google...</div>
+  </div>
+</div>
+
+<!-- Google Identity Services -->
+<script src="https://accounts.google.com/gsi/client" async></script>
+
+<script>
+// ─── Config ───────────────────────────────────────────
+const TEAM = [
+  { email: 'lklapka@itroom.fr',     name: 'L. Klapka',     initials: 'LK', color: '#534AB7' },
+  { email: 'fkosinski@itroom.fr',   name: 'F. Kosinski',   initials: 'FK', color: '#0F6E56' },
+  { email: 'mlepoutre@itroom.fr',   name: 'M. Lepoutre',   initials: 'ML', color: '#993C1D' },
+  { email: 'guhlenbusch@itroom.fr', name: 'G. Uhlenbusch', initials: 'GU', color: '#993556' },
+  { email: 'mcerqueira@itroom.fr',  name: 'M. Cerqueira',  initials: 'MC', color: '#185FA5' },
+];
+const SCOPES = 'https://www.googleapis.com/auth/calendar.readonly';
+const WORKING_HOURS_PER_DAY = 8;
+
+let tokenClient = null;
+let accessToken = null;
+let chartInst = null;
+
+// ─── Setup / Config ───────────────────────────────────
+function getClientId() { return localStorage.getItem('gcal_client_id') || ''; }
+
+function saveConfig() {
+  const v = document.getElementById('client-id-input').value.trim();
+  if (!v || !v.includes('.apps.googleusercontent.com')) {
+    alert('Le Client ID semble invalide. Il doit terminer par .apps.googleusercontent.com');
+    return;
+  }
+  localStorage.setItem('gcal_client_id', v);
+  showApp();
+}
+
+function resetConfig() {
+  if (!confirm('Réinitialiser la configuration ?')) return;
+  localStorage.removeItem('gcal_client_id');
+  accessToken = null;
+  location.reload();
+}
+
+function showApp() {
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'flex';
+  initGoogleAuth();
+}
+
+// ─── Google Auth ──────────────────────────────────────
+function initGoogleAuth() {
+  const clientId = getClientId();
+  if (!clientId) { showSetup(); return; }
+
+  // Wait for GSI to load
+  const wait = setInterval(() => {
+    if (window.google && google.accounts) {
+      clearInterval(wait);
+      tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: clientId,
+        scope: SCOPES,
+        callback: (resp) => {
+          if (resp.error) { showError('Erreur d\'authentification : ' + resp.error); return; }
+          accessToken = resp.access_token;
+          document.getElementById('auth-area').innerHTML = `<span class="badge-signed">✓ Connecté</span>`;
+          document.getElementById('refresh-btn').disabled = false;
+          refresh();
+        }
+      });
+      renderSignInButton();
+    }
+  }, 200);
+}
+
+function renderSignInButton() {
+  document.getElementById('auth-area').innerHTML = `
+    <button class="btn-signin" onclick="signIn()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>
+      Se connecter
+    </button>`;
+  document.getElementById('main-content').innerHTML = `
+    <div class="notice"><strong>Cliquez sur "Se connecter"</strong> pour autoriser l'accès à Google Calendar et afficher la charge de votre équipe.</div>`;
+}
+
+function signIn() {
+  if (!tokenClient) { alert('Auth Google non prête, patientez...'); return; }
+  tokenClient.requestAccessToken({ prompt: '' });
+}
+
+// ─── Date helpers ─────────────────────────────────────
+function getRange(period) {
+  const now = new Date();
+  const dow = (now.getDay() + 6) % 7;
+  const mon = new Date(now); mon.setDate(now.getDate() - dow); mon.setHours(0,0,0,0);
+
+  let s, e;
+  if (period === 'week')       { s = mon; e = new Date(mon); e.setDate(mon.getDate() + 6); }
+  else if (period === 'next_week') { s = new Date(mon); s.setDate(mon.getDate()+7); e = new Date(s); e.setDate(s.getDate()+6); }
+  else if (period === 'two_weeks'){ s = mon; e = new Date(mon); e.setDate(mon.getDate()+13); }
+  else { s = new Date(now.getFullYear(), now.getMonth(), 1); e = new Date(now.getFullYear(), now.getMonth()+1, 0); }
+  e.setHours(23,59,59);
+  return { s, e };
+}
+
+function fmtDate(d) { return d.toLocaleDateString('fr-FR', {day:'2-digit', month:'short'}); }
+function fmtDay(d)  { return d.toLocaleDateString('fr-FR', {weekday:'short', day:'2-digit', month:'short'}); }
+function fmtTime(d) { return d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}); }
+function isWeekend(d) { const w = d.getDay(); return w === 0 || w === 6; }
+
+// ─── Calendar API calls ───────────────────────────────
+async function gcalList(email, timeMin, timeMax) {
+  const params = new URLSearchParams({
+    timeMin: timeMin.toISOString(),
+    timeMax: timeMax.toISOString(),
+    singleEvents: 'true',
+    orderBy: 'startTime',
+    maxResults: '2500',
+    showDeleted: 'false',
+  });
+  const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(email)}/events?${params}`;
+  const r = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } });
+  if (r.status === 403 || r.status === 404) return null; // calendar not shared / not accessible
+  if (!r.ok) throw new Error(`API ${r.status} for ${email}`);
+  return r.json();
+}
+
+function eventDurationH(ev) {
+  if (!ev.start) return 0;
+  if (ev.start.date) return 0; // all-day → ignore for hour calc
+  const s = new Date(ev.start.dateTime);
+  const e = new Date(ev.end.dateTime);
+  return Math.max(0, (e - s) / 3600000);
+}
+
+function eventDateStr(ev) {
+  if (!ev.start) return '';
+  if (ev.start.date) return ev.start.date;
+  return new Date(ev.start.dateTime).toISOString().split('T')[0];
+}
+
+// ─── Main refresh ──────────────────────────────────────
+async function refresh() {
+  if (!accessToken) { signIn(); return; }
+  const btn = document.getElementById('refresh-btn');
+  btn.disabled = true;
+  const period = document.getElementById('period-select').value;
+  const { s, e } = getRange(period);
+
+  document.getElementById('main-content').innerHTML = `
+    <div class="loading"><div class="spinner"></div>Chargement des calendriers…<br>
+    <span style="font-size:12px;color:#888780;margin-top:4px;display:block">Du ${fmtDate(s)} au ${fmtDate(e)}</span></div>`;
+
+  try {
+    // Fetch all team members in parallel
+    const results = await Promise.all(TEAM.map(m => gcalList(m.email, s, e)));
+    renderDashboard(results, s, e, period);
+  } catch(err) {
+    if (err.message && err.message.includes('401')) {
+      accessToken = null;
+      renderSignInButton();
+    } else {
+      showError(err.message);
+    }
+  }
+  btn.disabled = false;
+}
+
+// ─── Render ────────────────────────────────────────────
+function renderDashboard(results, rangeStart, rangeEnd, period) {
+  const DAYS_LABEL = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'];
+
+  // Build day list (weekdays only)
+  const dayList = [];
+  const cur = new Date(rangeStart);
+  while (cur <= rangeEnd) {
+    if (!isWeekend(cur)) dayList.push(new Date(cur));
+    cur.setDate(cur.getDate() + 1);
+  }
+
+  // Process each member
+  const memberData = TEAM.map((member, i) => {
+    const calData = results[i];
+    if (!calData) return { ...member, accessible: false, events: [], totalH: 0, totalEvt: 0, byDay: {} };
+
+    const events = (calData.items || []).filter(ev => ev.status !== 'cancelled' && !isAllDay(ev));
+    const byDay = {};
+    let totalH = 0, totalEvt = 0;
+    const overloaded = [];
+
+    for (const ev of events) {
+      const dStr = eventDateStr(ev);
+      const h = eventDurationH(ev);
+      if (!byDay[dStr]) byDay[dStr] = { h: 0, count: 0 };
+      byDay[dStr].h += h;
+      byDay[dStr].count += 1;
+      totalH += h;
+      totalEvt += 1;
+    }
+
+    // Detect overloaded days
+    for (const [dStr, v] of Object.entries(byDay)) {
+      if (v.h >= WORKING_HOURS_PER_DAY * 0.75) overloaded.push(dStr);
+    }
+
+    // Find busiest day
+    let busiestDay = '', busiestH = 0;
+    for (const [dStr, v] of Object.entries(byDay)) {
+      if (v.h > busiestH) { busiestH = v.h; busiestDay = dStr; }
+    }
+
+    return { ...member, accessible: true, events, totalH, totalEvt, byDay, overloaded, busiestDay, busiestH };
+  });
+
+  // Team-wide events (events shared by 2+ members) for the next few events view
+  const allEvents = memberData.flatMap(m => (m.events || []).map(ev => ({ ...ev, _member: m })));
+  const upcoming = allEvents
+    .filter(ev => ev.start && ev.start.dateTime && new Date(ev.start.dateTime) >= new Date())
+    .sort((a, b) => new Date(a.start.dateTime) - new Date(b.start.dateTime))
+    .slice(0, 10);
+
+  // Metrics
+  const accessible = memberData.filter(m => m.accessible);
+  const totalH = accessible.reduce((s, m) => s + m.totalH, 0);
+  const totalEvt = accessible.reduce((s, m) => s + m.totalEvt, 0);
+  const maxH = Math.max(...accessible.map(m => m.totalH), 1);
+  const avgH = accessible.length ? totalH / accessible.length : 0;
+  const overloadedCount = accessible.filter(m => (m.overloaded || []).length > 0).length;
+
+  // Chart: hours per weekday per member
+  // Only show up to 5 representative days (Mon–Fri label)
+  const dayKeys = dayList.map(d => d.toISOString().split('T')[0]);
+  const dayLabels = dayList.map(d => d.toLocaleDateString('fr-FR', {weekday:'short', day:'2-digit'}));
+
+  const datasets = memberData.filter(m => m.accessible).map((m, i) => ({
+    label: m.name,
+    data: dayKeys.map(k => +(m.byDay[k]?.h || 0).toFixed(1)),
+    backgroundColor: m.color + 'bb',
+    borderColor: m.color,
+    borderWidth: 1,
+    borderRadius: 3,
+  }));
+
+  document.getElementById('main-content').innerHTML = `
+    <div class="metrics">
+      <div class="metric"><div class="lbl">Événements</div><div class="val">${totalEvt}</div><div class="sub">équipe · période</div></div>
+      <div class="metric"><div class="lbl">Heures de réunion</div><div class="val">${totalH.toFixed(0)}h</div><div class="sub">total équipe</div></div>
+      <div class="metric"><div class="lbl">Moy. par personne</div><div class="val">${avgH.toFixed(1)}h</div><div class="sub">sur la période</div></div>
+      <div class="metric"><div class="lbl">Surcharges</div><div class="val" style="color:${overloadedCount > 0 ? '#a32d2d' : '#3b6d11'}">${overloadedCount}</div><div class="sub">membres concernés</div></div>
+    </div>
+
+    ${memberData.some(m => !m.accessible) ? `
+    <div class="notice"><strong>Calendriers non accessibles :</strong> ${memberData.filter(m=>!m.accessible).map(m=>m.name).join(', ')}.<br>
+    Ils doivent partager leur calendrier Google avec votre compte pour apparaître ici.</div>` : ''}
+
+    <div class="card">
+      <h2>Charge par membre · ${fmtDate(rangeStart)} – ${fmtDate(rangeEnd)}</h2>
+      ${memberData.map(m => {
+        const pct = maxH > 0 ? Math.round((m.totalH / maxH) * 100) : 0;
+        const st = m.accessible
+          ? (m.totalH >= maxH * 0.75 ? {l:'Surchargé', c:'s-over'} : m.totalH >= maxH * 0.45 ? {l:'Occupé', c:'s-warn'} : {l:'OK', c:'s-ok'})
+          : {l:'Non partagé', c:'s-warn'};
+        return `
+        <div class="person-row">
+          <div class="avatar" style="background:${m.color}22;color:${m.color}">${m.initials}</div>
+          <div class="person-info">
+            <div class="person-name">${m.name}</div>
+            <div class="person-email">${m.email}</div>
+          </div>
+          <div class="bar-wrap">
+            <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${m.color}"></div></div>
+            <div class="bar-label">${m.accessible ? `${m.totalH.toFixed(1)}h · ${m.totalEvt} évts` : 'calendrier non accessible'}</div>
+          </div>
+          <span class="status ${st.c}">${st.l}</span>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <div class="card">
+      <h2>Heures de réunion par jour</h2>
+      <div class="legend">${memberData.filter(m=>m.accessible).map(m=>`<div class="legend-item"><div class="legend-dot" style="background:${m.color}"></div>${m.name}</div>`).join('')}</div>
+      <div class="chart-wrap"><canvas id="barChart"></canvas></div>
+    </div>
+
+    ${upcoming.length > 0 ? `
+    <div class="card">
+      <h2>Prochains événements</h2>
+      <div class="event-list">
+        ${upcoming.map(ev => {
+          const start = new Date(ev.start.dateTime);
+          const m = ev._member;
+          return `<div class="event-item">
+            <div class="event-dot" style="background:${m.color}"></div>
+            <div>
+              <div class="event-title">${ev.summary || '(sans titre)'}</div>
+              <div class="event-meta">${fmtDay(start)} · ${fmtTime(start)} · ${m.name} · ${(eventDurationH(ev)).toFixed(0)}h</div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>` : ''}
+  `;
+
+  // Chart
+  setTimeout(() => {
+    const ctx = document.getElementById('barChart');
+    if (!ctx) return;
+    if (chartInst) chartInst.destroy();
+    chartInst = new Chart(ctx, {
+      type: 'bar',
+      data: { labels: dayLabels, datasets },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { display: false }, ticks: { font: { size: 11 }, autoSkip: false, maxRotation: 45 } },
+          y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 11 }, callback: v => v + 'h' } }
+        }
+      }
+    });
+  }, 50);
+}
+
+function isAllDay(ev) { return !!(ev.start && ev.start.date && !ev.start.dateTime); }
+function showError(msg) {
+  document.getElementById('main-content').innerHTML = `<div class="notice" style="background:#fcebeb;border-color:#f7c1c1;color:#791f1f"><strong>Erreur :</strong> ${msg}</div>`;
+}
+
+// ─── Boot ──────────────────────────────────────────────
+if (getClientId()) {
+  showApp();
+} else {
+  document.getElementById('setup-screen').style.display = 'flex';
+  document.getElementById('app-screen').style.display = 'none';
+}
+</script>
+</body>
+</html>

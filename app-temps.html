@@ -6,151 +6,176 @@
 <title>Charge équipe itroom</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f4f0; color: #2c2c2a; min-height: 100vh; }
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:#f5f4f0; color:#2c2c2a; min-height:100vh; }
 
-/* ── Setup ── */
+/* Setup */
 #setup-screen { display:flex; align-items:center; justify-content:center; min-height:100vh; padding:24px; }
-.setup-card { background:#fff; border:0.5px solid rgba(0,0,0,0.12); border-radius:16px; padding:36px; max-width:480px; width:100%; }
+.setup-card { background:#fff; border:0.5px solid rgba(0,0,0,0.12); border-radius:16px; padding:36px; max-width:520px; width:100%; }
 .setup-card h1 { font-size:20px; font-weight:500; margin-bottom:6px; }
-.setup-card .desc { font-size:14px; color:#73726c; margin-bottom:28px; line-height:1.6; }
-.setup-steps { display:flex; flex-direction:column; gap:10px; margin-bottom:24px; }
+.setup-card .desc { font-size:14px; color:#73726c; margin-bottom:24px; line-height:1.6; }
+.convention-box { background:#f5f4f0; border-radius:8px; padding:14px; margin-bottom:20px; font-size:13px; line-height:1.8; }
+.convention-box code { background:#fff; border:0.5px solid rgba(0,0,0,0.12); border-radius:4px; padding:1px 5px; font-size:12px; }
+.setup-steps { display:flex; flex-direction:column; gap:8px; margin-bottom:20px; }
 .step { display:flex; align-items:flex-start; gap:10px; font-size:13px; }
 .step-num { width:22px; height:22px; border-radius:50%; background:#f1efe8; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:500; flex-shrink:0; margin-top:1px; }
 .step a { color:#185FA5; text-decoration:none; }
-.step a:hover { text-decoration:underline; }
-.input-group { margin-bottom:16px; }
-.input-group label { display:block; font-size:12px; color:#73726c; margin-bottom:6px; font-weight:500; }
+.input-group { margin-bottom:14px; }
+.input-group label { display:block; font-size:11px; color:#73726c; margin-bottom:5px; font-weight:500; letter-spacing:.03em; text-transform:uppercase; }
 .input-group input { width:100%; padding:10px 12px; border:0.5px solid rgba(0,0,0,0.2); border-radius:8px; font-size:13px; font-family:monospace; outline:none; }
-.input-group input:focus { border-color:#534AB7; box-shadow:0 0 0 3px rgba(83,74,183,0.1); }
+.input-group input:focus { border-color:#534AB7; box-shadow:0 0 0 3px rgba(83,74,183,.1); }
 .btn-primary { width:100%; padding:11px; background:#2c2c2a; color:#fff; border:none; border-radius:8px; font-size:14px; font-family:inherit; cursor:pointer; font-weight:500; }
 .btn-primary:hover { background:#444; }
-.hint { font-size:12px; color:#888780; margin-top:12px; line-height:1.5; }
+.hint { font-size:12px; color:#888780; margin-top:10px; line-height:1.5; }
 
-/* ── App ── */
+/* App */
 #app-screen { display:none; flex-direction:column; min-height:100vh; }
-.header { background:#fff; border-bottom:0.5px solid rgba(0,0,0,0.1); padding:12px 24px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.header { background:#fff; border-bottom:0.5px solid rgba(0,0,0,0.1); padding:11px 20px; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
 .header-left { display:flex; align-items:center; gap:8px; }
-.header-left h1 { font-size:16px; font-weight:500; }
-.header-right { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.header-left h1 { font-size:15px; font-weight:500; }
+.header-right { display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
 
-/* Period tabs */
 .period-tabs { display:flex; gap:2px; background:#f1efe8; border-radius:8px; padding:3px; }
-.ptab { font-family:inherit; font-size:13px; padding:5px 14px; border:none; border-radius:6px; background:transparent; cursor:pointer; color:#73726c; font-weight:400; transition:all .15s; }
-.ptab.active { background:#fff; color:#2c2c2a; font-weight:500; box-shadow:0 0.5px 2px rgba(0,0,0,0.1); }
-
-/* Nav arrows */
-.nav-btn { background:none; border:0.5px solid rgba(0,0,0,0.18); border-radius:6px; padding:5px 8px; cursor:pointer; font-size:13px; color:#2c2c2a; }
+.ptab { font-family:inherit; font-size:13px; padding:5px 12px; border:none; border-radius:6px; background:transparent; cursor:pointer; color:#73726c; }
+.ptab.active { background:#fff; color:#2c2c2a; font-weight:500; box-shadow:0 0.5px 2px rgba(0,0,0,.1); }
+.nav-btn { background:#fff; border:0.5px solid rgba(0,0,0,0.18); border-radius:6px; padding:5px 9px; cursor:pointer; font-size:14px; color:#2c2c2a; }
 .nav-btn:hover { background:#f5f4f0; }
-.nav-label { font-size:13px; color:#444441; min-width:120px; text-align:center; }
-
-select, button { font-family:inherit; }
-button.btn-signin { background:#185FA5; color:#fff; border:none; border-radius:7px; padding:6px 12px; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:5px; }
-button.btn-signin:hover { background:#0C447C; }
-button.btn-refresh { border:0.5px solid rgba(0,0,0,0.18); border-radius:7px; padding:6px 10px; font-size:13px; background:#fff; cursor:pointer; display:flex; align-items:center; gap:5px; }
-button.btn-refresh:hover { background:#f5f4f0; }
+.nav-label { font-size:13px; color:#444; min-width:140px; text-align:center; font-weight:500; }
+.btn-signin { background:#185FA5; color:#fff; border:none; border-radius:7px; padding:6px 12px; font-size:13px; font-family:inherit; cursor:pointer; display:flex; align-items:center; gap:5px; }
+.btn-signin:hover { background:#0C447C; }
+.btn-refresh { border:0.5px solid rgba(0,0,0,0.18); border-radius:7px; padding:6px 10px; font-size:13px; background:#fff; font-family:inherit; cursor:pointer; display:flex; align-items:center; gap:5px; }
+.btn-refresh:hover { background:#f5f4f0; }
 button:disabled { opacity:.4; cursor:not-allowed; }
 .badge-signed { font-size:12px; background:#eaf3de; color:#3b6d11; padding:4px 10px; border-radius:6px; }
 
-.main { padding:20px 24px; display:flex; flex-direction:column; gap:16px; flex:1; }
+/* View tabs */
+.view-tabs { display:flex; gap:0; border-bottom:0.5px solid rgba(0,0,0,0.1); background:#fff; padding:0 20px; }
+.vtab { font-family:inherit; font-size:13px; padding:10px 16px; border:none; background:transparent; cursor:pointer; color:#73726c; border-bottom:2px solid transparent; margin-bottom:-0.5px; }
+.vtab.active { color:#2c2c2a; font-weight:500; border-bottom-color:#2c2c2a; }
+
+.main { padding:18px 20px; display:flex; flex-direction:column; gap:14px; flex:1; }
 
 /* Metrics */
-.metrics { display:grid; grid-template-columns:repeat(auto-fit, minmax(130px,1fr)); gap:10px; }
+.metrics { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:10px; }
 .metric { background:#f1efe8; border-radius:8px; padding:12px 14px; }
-.metric .lbl { font-size:11px; color:#73726c; margin-bottom:4px; }
-.metric .val { font-size:22px; font-weight:500; line-height:1.2; }
+.metric .lbl { font-size:11px; color:#73726c; margin-bottom:3px; }
+.metric .val { font-size:21px; font-weight:500; line-height:1.2; }
 .metric .sub { font-size:11px; color:#888780; margin-top:2px; }
 
 /* Cards */
-.card { background:#fff; border:0.5px solid rgba(0,0,0,0.1); border-radius:12px; padding:18px 20px; }
-.card h2 { font-size:13px; font-weight:500; color:#444441; margin-bottom:16px; }
+.card { background:#fff; border:0.5px solid rgba(0,0,0,0.1); border-radius:12px; padding:16px 18px; }
+.card h2 { font-size:13px; font-weight:500; color:#444441; margin-bottom:14px; }
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+@media(max-width:700px){ .grid2,.grid3 { grid-template-columns:1fr; } }
 
 /* Member rows */
-.member-grid { display:flex; flex-direction:column; gap:14px; }
-.member-row { display:flex; align-items:center; gap:12px; }
-.avatar { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:500; flex-shrink:0; }
-.member-info { width:110px; flex-shrink:0; }
+.member-grid { display:flex; flex-direction:column; gap:12px; }
+.member-row { display:flex; align-items:center; gap:10px; }
+.avatar { width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:500; flex-shrink:0; }
+.member-info { width:100px; flex-shrink:0; }
 .member-name { font-size:13px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.member-email { font-size:10px; color:#888780; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-
-/* Double bar (charge + dispo) */
-.bars-wrap { flex:1; display:flex; flex-direction:column; gap:4px; }
-.bar-row { display:flex; align-items:center; gap:6px; }
-.bar-lbl { font-size:10px; color:#888780; width:32px; flex-shrink:0; text-align:right; }
-.bar-track { flex:1; background:#f1efe8; border-radius:4px; height:8px; overflow:hidden; }
+.member-email { font-size:10px; color:#888780; }
+.bars-wrap { flex:1; display:flex; flex-direction:column; gap:3px; }
+.bar-row { display:flex; align-items:center; gap:5px; }
+.bar-lbl { font-size:10px; color:#888780; width:28px; text-align:right; flex-shrink:0; }
+.bar-track { flex:1; background:#f1efe8; border-radius:4px; height:7px; overflow:hidden; }
 .bar-fill { height:100%; border-radius:4px; transition:width .7s cubic-bezier(.4,0,.2,1); }
-.bar-val { font-size:11px; color:#73726c; width:38px; flex-shrink:0; text-align:right; }
-
-/* Status + dispo badge */
-.member-right { display:flex; flex-direction:column; align-items:flex-end; gap:4px; width:80px; flex-shrink:0; }
+.bar-val { font-size:11px; color:#73726c; width:36px; text-align:right; flex-shrink:0; }
+.member-right { display:flex; flex-direction:column; align-items:flex-end; gap:3px; width:72px; flex-shrink:0; }
 .status { font-size:11px; padding:2px 7px; border-radius:4px; white-space:nowrap; }
 .s-free { background:#eaf3de; color:#3b6d11; }
 .s-ok   { background:#e6f1fb; color:#185FA5; }
 .s-busy { background:#faeeda; color:#854f0b; }
 .s-over { background:#fcebeb; color:#a32d2d; }
-.dispo-val { font-size:12px; font-weight:500; }
+
+/* Presta pills */
+.presta-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
+.presta-pill { font-size:11px; padding:3px 9px; border-radius:4px; font-weight:500; }
+.pill-prop    { background:#EEEDFE; color:#3C3489; }
+.pill-regie   { background:#E1F5EE; color:#085041; }
+.pill-interne { background:#F1EFE8; color:#444441; }
+.pill-autre   { background:#FAECE7; color:#4A1B0C; }
+
+/* Stacked mini bar */
+.stack-bar { display:flex; height:10px; border-radius:5px; overflow:hidden; gap:1px; }
+.stack-seg { height:100%; transition:width .6s; }
+
+/* Client table */
+.client-table { width:100%; border-collapse:collapse; font-size:13px; }
+.client-table th { font-size:11px; font-weight:500; color:#73726c; text-align:left; padding:6px 8px; border-bottom:0.5px solid rgba(0,0,0,0.1); }
+.client-table td { padding:7px 8px; border-bottom:0.5px solid rgba(0,0,0,0.06); vertical-align:middle; }
+.client-table tr:last-child td { border-bottom:none; }
+.client-name { font-weight:500; }
+.mini-bar-wrap { width:100px; }
+.mini-bar-track { background:#f1efe8; border-radius:3px; height:6px; overflow:hidden; }
+.mini-bar-fill { height:100%; border-radius:3px; background:#534AB7; }
 
 /* Chart */
 .chart-wrap { position:relative; }
 
-/* Timeline (quarterly/annual) */
-.timeline-grid { display:grid; gap:8px; }
-.tl-row { display:flex; align-items:center; gap:8px; }
-.tl-name { font-size:12px; font-weight:500; width:90px; flex-shrink:0; }
-.tl-bars { flex:1; display:flex; gap:2px; }
-.tl-cell { flex:1; border-radius:3px; height:24px; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:500; cursor:pointer; transition:opacity .15s; }
-.tl-cell:hover { opacity:.8; }
-.tl-headers { display:flex; gap:2px; margin-left:98px; margin-bottom:4px; }
-.tl-hdr { flex:1; font-size:10px; color:#888780; text-align:center; }
+/* Legend */
+.legend { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
+.legend-item { display:flex; align-items:center; gap:5px; font-size:11px; color:#73726c; }
+.legend-dot { width:9px; height:9px; border-radius:2px; flex-shrink:0; }
+
+/* With/without client badge */
+.avec { background:#E1F5EE; color:#085041; }
+.sans { background:#EEEDFE; color:#3C3489; }
 
 /* Events */
 .event-list { display:flex; flex-direction:column; gap:6px; max-height:260px; overflow-y:auto; }
-.event-item { display:flex; gap:9px; padding:8px 10px; background:#f5f4f0; border-radius:7px; align-items:flex-start; }
+.event-item { display:flex; gap:9px; padding:8px 10px; background:#f5f4f0; border-radius:7px; }
 .event-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; margin-top:4px; }
 .event-title { font-size:13px; font-weight:500; }
 .event-meta { font-size:11px; color:#73726c; margin-top:1px; }
-
-/* Legend */
-.legend { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:10px; }
-.legend-item { display:flex; align-items:center; gap:5px; font-size:11px; color:#73726c; }
-.legend-dot { width:9px; height:9px; border-radius:2px; }
+.event-tags { display:flex; gap:4px; margin-top:3px; flex-wrap:wrap; }
+.etag { font-size:10px; padding:1px 6px; border-radius:3px; }
 
 /* Misc */
 .loading { text-align:center; padding:40px; color:#73726c; font-size:14px; }
 .spinner { width:22px; height:22px; border:2px solid #d3d1c7; border-top-color:#2c2c2a; border-radius:50%; animation:spin .8s linear infinite; margin:0 auto 12px; }
 @keyframes spin { to { transform:rotate(360deg); } }
 .notice { background:#faeeda; border:0.5px solid #fac775; border-radius:8px; padding:12px 14px; font-size:13px; color:#633806; line-height:1.5; }
-.row2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
-@media(max-width:640px){ .row2 { grid-template-columns:1fr; } }
+.divider { height:0.5px; background:rgba(0,0,0,0.07); margin:10px 0; }
 </style>
 </head>
 <body>
 
-<!-- ══════════════ SETUP ══════════════ -->
+<!-- ══ SETUP ══ -->
 <div id="setup-screen">
   <div class="setup-card">
     <h1>⚙️ Configuration</h1>
-    <p class="desc">Pour fonctionner de façon autonome, l'app a besoin d'un identifiant OAuth Google (gratuit, ~5 min).</p>
+    <p class="desc">Connectez l'app à Google Calendar. Elle lira et analysera les événements de votre équipe selon la convention de nommage ci-dessous.</p>
+
+    <div class="convention-box">
+      <strong>Convention de nommage des événements :</strong><br>
+      <code>[P] TYPE Client – description</code><br><br>
+      • <code>[P]</code> = travail <em>pour</em> le client (sans lui) &nbsp;|&nbsp; sans <code>[P]</code> = avec le client<br>
+      • Types : <code>PROP</code> &nbsp;<code>REGIE</code> &nbsp;<code>INTERNE</code><br>
+      • Exemples : <code>PROP Acme – démo</code> &nbsp;·&nbsp; <code>[P] REGIE Orange – rapport</code> &nbsp;·&nbsp; <code>INTERNE – réunion</code>
+    </div>
+
     <div class="setup-steps">
       <div class="step"><div class="step-num">1</div><div>Créez un projet sur <a href="https://console.cloud.google.com" target="_blank">console.cloud.google.com</a></div></div>
       <div class="step"><div class="step-num">2</div><div>Activez l'<a href="https://console.cloud.google.com/apis/library/calendar-json.googleapis.com" target="_blank">API Google Calendar</a></div></div>
-      <div class="step"><div class="step-num">3</div><div><a href="https://console.cloud.google.com/apis/credentials" target="_blank">Credentials</a> → + Créer → OAuth Client ID → <strong>Application Web</strong> → Origine JS : <code style="font-size:11px;background:#f1efe8;padding:1px 5px;border-radius:3px">https://mcerqueira59.github.io</code></div></div>
-      <div class="step"><div class="step-num">4</div><div>Copiez le <strong>Client ID</strong> ci-dessous</div></div>
+      <div class="step"><div class="step-num">3</div><div><a href="https://console.cloud.google.com/apis/credentials" target="_blank">Credentials</a> → OAuth Client ID → Application Web → Origine JS : <code style="font-size:11px;background:#f1efe8;padding:1px 5px;border-radius:3px">https://mcerqueira59.github.io</code></div></div>
     </div>
+
     <div class="input-group">
-      <label>CLIENT ID GOOGLE OAUTH</label>
+      <label>Client ID Google OAuth</label>
       <input type="text" id="client-id-input" placeholder="XXXXX.apps.googleusercontent.com" />
     </div>
     <button class="btn-primary" onclick="saveConfig()">Enregistrer et lancer</button>
-    <p class="hint">Le Client ID est stocké localement dans votre navigateur.</p>
+    <p class="hint">Stocké localement dans votre navigateur — saisi une seule fois.</p>
   </div>
 </div>
 
-<!-- ══════════════ APP ══════════════ -->
+<!-- ══ APP ══ -->
 <div id="app-screen">
   <div class="header">
     <div class="header-left">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
       <h1>Charge équipe itroom</h1>
     </div>
     <div class="header-right">
@@ -168,9 +193,17 @@ button:disabled { opacity:.4; cursor:not-allowed; }
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
         Actualiser
       </button>
-      <button onclick="resetConfig()" style="font-size:11px;color:#888780;border:none;background:none;cursor:pointer;padding:4px;">⚙</button>
+      <button onclick="resetConfig()" style="font-size:11px;color:#888780;border:none;background:none;cursor:pointer;">⚙</button>
     </div>
   </div>
+
+  <div class="view-tabs">
+    <button class="vtab active" onclick="setView('charge',this)">Charge & dispo</button>
+    <button class="vtab" onclick="setView('presta',this)">Types de presta</button>
+    <button class="vtab" onclick="setView('clients',this)">Clients</button>
+    <button class="vtab" onclick="setView('agenda',this)">Agenda</button>
+  </div>
+
   <div class="main" id="main-content">
     <div class="loading"><div class="spinner"></div>Connexion à Google...</div>
   </div>
@@ -178,7 +211,7 @@ button:disabled { opacity:.4; cursor:not-allowed; }
 
 <script src="https://accounts.google.com/gsi/client" async></script>
 <script>
-// ─── Constants ────────────────────────────────────────
+// ═══ Constants ═══════════════════════════════════════
 const TEAM = [
   { email:'lklapka@itroom.fr',     name:'L. Klapka',     initials:'LK', color:'#534AB7' },
   { email:'fkosinski@itroom.fr',   name:'F. Kosinski',   initials:'FK', color:'#0F6E56' },
@@ -186,15 +219,23 @@ const TEAM = [
   { email:'guhlenbusch@itroom.fr', name:'G. Uhlenbusch', initials:'GU', color:'#993556' },
   { email:'mcerqueira@itroom.fr',  name:'M. Cerqueira',  initials:'MC', color:'#185FA5' },
 ];
-const WEEK_H = 37.5;
-const SCOPES = 'https://www.googleapis.com/auth/calendar.readonly';
+const WEEK_H   = 37.5;
+const DAY_H    = WEEK_H / 5;
+const SCOPES   = 'https://www.googleapis.com/auth/calendar.readonly';
+
+const PRESTA_TYPES = {
+  PROP:    { label:'Force de proposition', color:'#534AB7', bg:'#EEEDFE', tc:'#3C3489' },
+  REGIE:   { label:'Régie / TMA',          color:'#0F6E56', bg:'#E1F5EE', tc:'#085041' },
+  INTERNE: { label:'Interne',              color:'#888780', bg:'#F1EFE8', tc:'#444441' },
+  AUTRE:   { label:'Non catégorisé',       color:'#D85A30', bg:'#FAECE7', tc:'#4A1B0C' },
+};
 
 let tokenClient = null, accessToken = null;
-let chartInst = null, chartInst2 = null;
-let currentPeriod = 'week';
-let currentOffset = 0; // 0 = current, -1 = previous, +1 = next
+let charts = {};
+let currentPeriod = 'week', currentOffset = 0, currentView = 'charge';
+let lastData = null;
 
-// ─── Config ───────────────────────────────────────────
+// ═══ Config ════════════════════════════════════════
 function getClientId() { return localStorage.getItem('gcal_client_id') || ''; }
 function saveConfig() {
   const v = document.getElementById('client-id-input').value.trim();
@@ -213,7 +254,7 @@ function showApp() {
   initAuth();
 }
 
-// ─── Auth ─────────────────────────────────────────────
+// ═══ Auth ══════════════════════════════════════════
 function initAuth() {
   const id = getClientId();
   if (!id) { location.reload(); return; }
@@ -223,7 +264,7 @@ function initAuth() {
       tokenClient = google.accounts.oauth2.initTokenClient({
         client_id: id, scope: SCOPES,
         callback: (r) => {
-          if (r.error) { showError('Auth error: ' + r.error); return; }
+          if (r.error) { showError('Auth: ' + r.error); return; }
           accessToken = r.access_token;
           document.getElementById('auth-area').innerHTML = `<span class="badge-signed">✓ Connecté</span>`;
           document.getElementById('refresh-btn').disabled = false;
@@ -235,418 +276,481 @@ function initAuth() {
   }, 200);
 }
 function renderSignIn() {
-  document.getElementById('auth-area').innerHTML = `<button class="btn-signin" onclick="signIn()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>Se connecter</button>`;
+  document.getElementById('auth-area').innerHTML = `<button class="btn-signin" onclick="signIn()">Se connecter</button>`;
   document.getElementById('main-content').innerHTML = `<div class="notice"><strong>Cliquez sur "Se connecter"</strong> pour autoriser l'accès à Google Calendar.</div>`;
 }
 function signIn() { if (tokenClient) tokenClient.requestAccessToken({ prompt:'' }); }
 
-// ─── Period logic ─────────────────────────────────────
+// ═══ Period helpers ════════════════════════════════
 function setPeriod(p, btn) {
-  currentPeriod = p;
-  currentOffset = 0;
+  currentPeriod = p; currentOffset = 0;
   document.querySelectorAll('.ptab').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   if (accessToken) refresh();
 }
-function navigate(dir) {
-  currentOffset += dir;
-  if (accessToken) refresh();
+function navigate(d) { currentOffset += d; if (accessToken) refresh(); }
+function setView(v, btn) {
+  currentView = v;
+  document.querySelectorAll('.vtab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (lastData) renderView();
 }
 
 function getRange() {
-  const now = new Date();
+  const now = new Date(), o = currentOffset;
   let s, e, label;
-  const o = currentOffset;
-
   if (currentPeriod === 'week') {
-    const dow = (now.getDay() + 6) % 7;
-    const mon = new Date(now); mon.setDate(now.getDate() - dow + o * 7); mon.setHours(0,0,0,0);
-    const fri = new Date(mon); fri.setDate(mon.getDate() + 4); fri.setHours(23,59,59);
-    s = mon; e = fri;
-    const wn = getWeekNumber(mon);
-    label = `Semaine ${wn} · ${fmtShort(mon)} – ${fmtShort(fri)}`;
+    const dow = (now.getDay()+6)%7;
+    const mon = new Date(now); mon.setDate(now.getDate()-dow+o*7); mon.setHours(0,0,0,0);
+    const fri = new Date(mon); fri.setDate(mon.getDate()+4); fri.setHours(23,59,59);
+    s=mon; e=fri; label=`Semaine ${weekNum(mon)} · ${fmt(mon)} – ${fmt(fri)}`;
   } else if (currentPeriod === 'month') {
-    const y = now.getFullYear(), m = now.getMonth() + o;
-    s = new Date(y, m, 1); e = new Date(y, m + 1, 0, 23, 59, 59);
-    label = s.toLocaleDateString('fr-FR', {month:'long', year:'numeric'});
+    const m = now.getMonth()+o, y = now.getFullYear();
+    s=new Date(y,m,1); e=new Date(y,m+1,0,23,59,59);
+    label=s.toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
   } else if (currentPeriod === 'quarter') {
-    const q = Math.floor(now.getMonth() / 3) + o;
-    const qMod = ((q % 4) + 4) % 4;
-    const qYear = now.getFullYear() + Math.floor(q / 4);
-    s = new Date(qYear, qMod * 3, 1);
-    e = new Date(qYear, qMod * 3 + 3, 0, 23, 59, 59);
-    label = `T${qMod + 1} ${qYear}`;
-  } else { // year
-    const y = now.getFullYear() + o;
-    s = new Date(y, 0, 1); e = new Date(y, 11, 31, 23, 59, 59);
-    label = `Année ${y}`;
+    const q=Math.floor(now.getMonth()/3)+o;
+    const qm=((q%4)+4)%4, qy=now.getFullYear()+Math.floor(q/4);
+    s=new Date(qy,qm*3,1); e=new Date(qy,qm*3+3,0,23,59,59);
+    label=`T${qm+1} ${qy}`;
+  } else {
+    const y=now.getFullYear()+o;
+    s=new Date(y,0,1); e=new Date(y,11,31,23,59,59); label=`Année ${y}`;
   }
-  return { s, e, label };
+  return {s,e,label};
 }
 
-function getWeekNumber(d) {
-  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-  date.setUTCDate(date.getUTCDate() + 4 - (date.getUTCDay() || 7));
-  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
-  return Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
-}
-
-// Count working days (Mon–Fri) in range
-function countWorkDays(start, end) {
-  let count = 0, cur = new Date(start);
-  cur.setHours(0,0,0,0);
-  const endD = new Date(end); endD.setHours(0,0,0,0);
-  while (cur <= endD) {
-    const d = cur.getDay();
-    if (d !== 0 && d !== 6) count++;
-    cur.setDate(cur.getDate() + 1);
-  }
-  return count;
-}
-
-// Sub-periods for chart labels
-function getSubPeriods() {
-  const { s, e } = getRange();
-  if (currentPeriod === 'week') {
-    const days = [];
-    const cur = new Date(s);
-    while (cur <= e) {
-      days.push({ label: cur.toLocaleDateString('fr-FR',{weekday:'short',day:'2-digit'}), key: cur.toISOString().split('T')[0], start: new Date(cur), end: new Date(cur.getTime() + 86399999) });
-      cur.setDate(cur.getDate() + 1);
-    }
+function getSubPeriods(s, e) {
+  if (currentPeriod==='week') {
+    const days=[]; const cur=new Date(s);
+    while(cur<=e){ days.push({label:cur.toLocaleDateString('fr-FR',{weekday:'short',day:'2-digit'}),start:new Date(cur),end:new Date(cur.getTime()+86399999)}); cur.setDate(cur.getDate()+1); }
     return days;
-  } else if (currentPeriod === 'month') {
-    // Weeks of the month
-    const weeks = [];
-    const cur = new Date(s);
-    while (cur <= e) {
-      const ws = new Date(cur);
-      const we = new Date(cur); we.setDate(cur.getDate() + 6); if (we > e) we.setTime(e.getTime());
-      weeks.push({ label: `S${getWeekNumber(ws)}`, key: ws.toISOString().split('T')[0], start: ws, end: we });
-      cur.setDate(cur.getDate() + 7);
-    }
+  } else if (currentPeriod==='month') {
+    const weeks=[]; const cur=new Date(s);
+    while(cur<=e){ const ws=new Date(cur),we=new Date(cur); we.setDate(cur.getDate()+6); if(we>e)we.setTime(e.getTime()); weeks.push({label:`S${weekNum(ws)}`,start:ws,end:we}); cur.setDate(cur.getDate()+7); }
     return weeks;
-  } else if (currentPeriod === 'quarter') {
-    // Months of quarter
-    const months = [];
-    const cur = new Date(s);
-    while (cur <= e) {
-      const ms = new Date(cur.getFullYear(), cur.getMonth(), 1);
-      const me = new Date(cur.getFullYear(), cur.getMonth() + 1, 0, 23, 59, 59);
-      months.push({ label: ms.toLocaleDateString('fr-FR',{month:'short'}), key: ms.toISOString().split('T')[0], start: ms, end: me });
-      cur.setMonth(cur.getMonth() + 1);
-    }
+  } else if (currentPeriod==='quarter') {
+    const months=[]; const cur=new Date(s);
+    while(cur<=e){ const ms=new Date(cur.getFullYear(),cur.getMonth(),1),me=new Date(cur.getFullYear(),cur.getMonth()+1,0,23,59,59); months.push({label:ms.toLocaleDateString('fr-FR',{month:'short'}),start:ms,end:me}); cur.setMonth(cur.getMonth()+1); }
     return months;
   } else {
-    // Quarters of year
-    const qs = [];
-    for (let q = 0; q < 4; q++) {
-      const qs_start = new Date(s.getFullYear(), q * 3, 1);
-      const qs_end = new Date(s.getFullYear(), q * 3 + 3, 0, 23, 59, 59);
-      qs.push({ label: `T${q+1}`, key: qs_start.toISOString().split('T')[0], start: qs_start, end: qs_end });
-    }
-    return qs;
+    return [0,1,2,3].map(q=>({label:`T${q+1}`,start:new Date(s.getFullYear(),q*3,1),end:new Date(s.getFullYear(),q*3+3,0,23,59,59)}));
   }
 }
 
-// ─── Helpers ──────────────────────────────────────────
-function fmtShort(d) { return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'short'}); }
-function fmtDate(d)  { return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'}); }
-function fmtTime(d)  { return d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}); }
-function fmtDay(d)   { return d.toLocaleDateString('fr-FR',{weekday:'short',day:'2-digit',month:'short'}); }
-function isWeekend(d){ const w = d.getDay(); return w===0||w===6; }
-function isAllDay(ev){ return !!(ev.start && ev.start.date && !ev.start.dateTime); }
-function evDurationH(ev) {
-  if (!ev.start || isAllDay(ev)) return 0;
-  return Math.max(0, (new Date(ev.end.dateTime) - new Date(ev.start.dateTime)) / 3600000);
+function weekNum(d) {
+  const u=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
+  u.setUTCDate(u.getUTCDate()+4-(u.getUTCDay()||7));
+  return Math.ceil((((u-new Date(Date.UTC(u.getUTCFullYear(),0,1)))/86400000)+1)/7);
 }
-function evDateStr(ev) {
-  if (!ev.start) return '';
-  return ev.start.date || new Date(ev.start.dateTime).toISOString().split('T')[0];
+function workDays(s,e) {
+  let c=0,d=new Date(s); d.setHours(0,0,0,0);
+  const ed=new Date(e); ed.setHours(0,0,0,0);
+  while(d<=ed){ if(d.getDay()!==0&&d.getDay()!==6)c++; d.setDate(d.getDate()+1); }
+  return c;
 }
-function showError(msg) {
-  document.getElementById('main-content').innerHTML = `<div class="notice" style="background:#fcebeb;border-color:#f7c1c1;color:#791f1f"><strong>Erreur :</strong> ${msg}</div>`;
+function fmt(d){ return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'short'}); }
+function fmtFull(d){ return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'}); }
+function fmtDay(d){ return d.toLocaleDateString('fr-FR',{weekday:'short',day:'2-digit',month:'short'}); }
+function fmtTime(d){ return d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}); }
+function isAllDay(ev){ return !!(ev.start&&ev.start.date&&!ev.start.dateTime); }
+function isWeekend(d){ return d.getDay()===0||d.getDay()===6; }
+function evH(ev){ if(!ev.start||isAllDay(ev))return 0; return Math.max(0,(new Date(ev.end.dateTime)-new Date(ev.start.dateTime))/3600000); }
+function showError(m){ document.getElementById('main-content').innerHTML=`<div class="notice" style="background:#fcebeb;border-color:#f7c1c1;color:#791f1f"><strong>Erreur :</strong> ${m}</div>`; }
+function loadColor(p){ return p>=90?'#a32d2d':p>=65?'#854f0b':p>=35?'#185FA5':'#3b6d11'; }
+
+// ═══ Parse event title ══════════════════════════════
+// Format: [P] TYPE Client – description
+function parseEvent(ev) {
+  const raw = (ev.summary || '').trim();
+  let title = raw, avecClient = true, type = 'AUTRE', client = null;
+
+  // Check [P] prefix
+  if (/^\[P\]/i.test(title)) {
+    avecClient = false;
+    title = title.replace(/^\[P\]\s*/i, '');
+  }
+
+  // Extract type
+  const typeMatch = title.match(/^(PROP|REGIE|INTERNE)\b/i);
+  if (typeMatch) {
+    type = typeMatch[1].toUpperCase();
+    title = title.replace(typeMatch[0], '').trim();
+  }
+
+  // Extract client (before – or end of first word after type)
+  // title is now "Client – description" or "Client description"
+  if (type !== 'INTERNE' && type !== 'AUTRE') {
+    const dashMatch = title.match(/^([^–\-]+?)\s*[–\-]/);
+    if (dashMatch) {
+      client = dashMatch[1].trim();
+    } else {
+      // First word as client
+      const firstWord = title.split(/\s+/)[0];
+      if (firstWord && firstWord.length > 1) client = firstWord;
+    }
+  }
+
+  return { raw, type, avecClient, client: client || null };
 }
 
-// ─── API ──────────────────────────────────────────────
-async function gcalList(email, timeMin, timeMax) {
-  const p = new URLSearchParams({ timeMin: timeMin.toISOString(), timeMax: timeMax.toISOString(), singleEvents:'true', orderBy:'startTime', maxResults:'2500', showDeleted:'false' });
-  const r = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(email)}/events?${p}`, { headers:{ Authorization:`Bearer ${accessToken}` } });
-  if (r.status === 403 || r.status === 404) return null;
-  if (r.status === 401) throw new Error('401');
-  if (!r.ok) throw new Error(`API ${r.status}`);
+// ═══ API ═══════════════════════════════════════════
+async function gcalList(email, tMin, tMax) {
+  const p=new URLSearchParams({timeMin:tMin.toISOString(),timeMax:tMax.toISOString(),singleEvents:'true',orderBy:'startTime',maxResults:'2500',showDeleted:'false'});
+  const r=await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(email)}/events?${p}`,{headers:{Authorization:`Bearer ${accessToken}`}});
+  if(r.status===403||r.status===404)return null;
+  if(r.status===401)throw new Error('401');
+  if(!r.ok)throw new Error(`API ${r.status}`);
   return r.json();
 }
 
-// ─── Main refresh ──────────────────────────────────────
+// ═══ Refresh ═══════════════════════════════════════
 async function refresh() {
   if (!accessToken) { signIn(); return; }
   const btn = document.getElementById('refresh-btn');
   btn.disabled = true;
-  const { s, e, label } = getRange();
+  const {s,e,label} = getRange();
   document.getElementById('nav-label').textContent = label;
-
   document.getElementById('main-content').innerHTML = `<div class="loading"><div class="spinner"></div>Chargement…<br><span style="font-size:12px;color:#888780;margin-top:4px;display:block">${label}</span></div>`;
 
   try {
     const results = await Promise.all(TEAM.map(m => gcalList(m.email, s, e)));
-    renderDashboard(results, s, e, label);
+    // Process
+    const wd = workDays(s, e);
+    const availH = wd * DAY_H;
+    const members = TEAM.map((m,i) => {
+      const cal = results[i];
+      if (!cal) return { ...m, accessible:false, events:[], totalH:0, totalEvt:0, availH, dispoH:availH, loadPct:0, byType:{}, byClient:{}, avecH:0, sansH:0 };
+      const events = (cal.items||[]).filter(ev => ev.status!=='cancelled' && !isAllDay(ev)).map(ev => {
+        const parsed = parseEvent(ev);
+        return { ...ev, _h:evH(ev), _type:parsed.type, _avecClient:parsed.avecClient, _client:parsed.client, _raw:parsed.raw };
+      });
+      let totalH=0, byType={}, byClient={}, avecH=0, sansH=0;
+      for (const ev of events) {
+        totalH += ev._h;
+        byType[ev._type] = (byType[ev._type]||0) + ev._h;
+        if (ev._client) byClient[ev._client] = (byClient[ev._client]||0) + ev._h;
+        if (ev._avecClient) avecH += ev._h; else sansH += ev._h;
+      }
+      const loadPct = availH>0 ? Math.min(100,Math.round((totalH/availH)*100)) : 0;
+      return { ...m, accessible:true, events, totalH, totalEvt:events.length, availH, dispoH:Math.max(0,availH-totalH), loadPct, byType, byClient, avecH, sansH };
+    });
+
+    lastData = { members, s, e, label, wd, availH };
+    renderView();
   } catch(err) {
-    if (err.message.includes('401')) { accessToken = null; renderSignIn(); }
+    if(err.message.includes('401')){ accessToken=null; renderSignIn(); }
     else showError(err.message);
   }
   btn.disabled = false;
 }
 
-// ─── Process events ───────────────────────────────────
-function processEvents(events, rangeStart, rangeEnd) {
-  const byDay = {}, byPeriod = {};
-  let totalH = 0, totalEvt = 0;
-  const overloaded = [];
+// ═══ Views ═════════════════════════════════════════
+function renderView() {
+  destroyCharts();
+  const { members, s, e, label, wd, availH } = lastData;
+  const acc = members.filter(m => m.accessible);
 
-  for (const ev of (events || [])) {
-    if (ev.status === 'cancelled' || isAllDay(ev)) continue;
-    const dStr = evDateStr(ev);
-    const h = evDurationH(ev);
-    if (!byDay[dStr]) byDay[dStr] = { h:0, count:0 };
-    byDay[dStr].h += h;
-    byDay[dStr].count++;
-    totalH += h;
-    totalEvt++;
-  }
-
-  // Detect overloaded days (>= 6h of meetings in a day)
-  for (const [dStr, v] of Object.entries(byDay)) {
-    if (v.h >= 6) overloaded.push(dStr);
-  }
-
-  // Available hours
-  const workDays = countWorkDays(rangeStart, rangeEnd);
-  const availableH = workDays * (WEEK_H / 5);
-  const dispoH = Math.max(0, availableH - totalH);
-  const loadPct = availableH > 0 ? Math.min(100, Math.round((totalH / availableH) * 100)) : 0;
-
-  return { byDay, byPeriod, totalH, totalEvt, overloaded, availableH, dispoH, loadPct, workDays };
+  if (currentView === 'charge')   renderCharge(members, acc, s, e, label, wd, availH);
+  if (currentView === 'presta')   renderPresta(members, acc, s, e, label);
+  if (currentView === 'clients')  renderClients(members, acc, s, e, label);
+  if (currentView === 'agenda')   renderAgenda(members);
 }
 
-// ─── Render ───────────────────────────────────────────
-function renderDashboard(results, rangeStart, rangeEnd, label) {
-  const subPeriods = getSubPeriods();
-  const workDays = countWorkDays(rangeStart, rangeEnd);
-  const totalAvailH = workDays * (WEEK_H / 5);
-
-  // Process each member
-  const members = TEAM.map((m, i) => {
-    const calData = results[i];
-    if (!calData) return { ...m, accessible:false, totalH:0, totalEvt:0, availableH:totalAvailH, dispoH:totalAvailH, loadPct:0, overloaded:[], byDay:{}, events:[] };
-    const events = (calData.items || []).filter(ev => ev.status !== 'cancelled' && !isAllDay(ev));
-    const proc = processEvents(events, rangeStart, rangeEnd);
-    return { ...m, accessible:true, events, ...proc };
-  });
-
-  // Sub-period breakdown for chart
-  const subData = subPeriods.map(sp => {
-    return members.map(m => {
-      if (!m.accessible) return 0;
-      const spWorkDays = countWorkDays(sp.start, sp.end);
-      const spAvailH = spWorkDays * (WEEK_H / 5);
-      let spH = 0;
-      for (const ev of m.events) {
-        if (isAllDay(ev)) continue;
-        const evStart = new Date(ev.start.dateTime);
-        if (evStart >= sp.start && evStart <= sp.end) spH += evDurationH(ev);
-      }
-      return spAvailH > 0 ? Math.min(100, Math.round((spH / spAvailH) * 100)) : 0;
-    });
-  });
-
-  // Team metrics
-  const accessible = members.filter(m => m.accessible);
-  const totalTeamH = accessible.reduce((s,m) => s + m.totalH, 0);
-  const totalTeamAvail = accessible.reduce((s,m) => s + m.availableH, 0);
-  const avgLoad = totalTeamAvail > 0 ? Math.round((totalTeamH / totalTeamAvail) * 100) : 0;
-  const totalTeamDispo = accessible.reduce((s,m) => s + m.dispoH, 0);
-  const overloadedCount = accessible.filter(m => m.overloaded.length > 0).length;
-  const totalEvt = accessible.reduce((s,m) => s + m.totalEvt, 0);
-
-  // Upcoming events
-  const now = new Date();
-  const upcoming = members.flatMap(m => (m.events||[]).map(ev => ({...ev, _member:m})))
-    .filter(ev => ev.start && ev.start.dateTime && new Date(ev.start.dateTime) >= now)
-    .sort((a,b) => new Date(a.start.dateTime) - new Date(b.start.dateTime))
-    .slice(0, 8);
+// ── Vue Charge & dispo ─────────────────────────────
+function renderCharge(members, acc, s, e, label, wd, availH) {
+  const totalTeamH = acc.reduce((s,m)=>s+m.totalH,0);
+  const totalDispo  = acc.reduce((s,m)=>s+m.dispoH,0);
+  const avgLoad     = acc.length&&availH>0 ? Math.round((totalTeamH/(acc.length*availH))*100) : 0;
+  const subP        = getSubPeriods(s,e);
 
   document.getElementById('main-content').innerHTML = `
     <div class="metrics">
-      <div class="metric">
-        <div class="lbl">Charge moyenne équipe</div>
-        <div class="val" style="color:${loadColor(avgLoad)}">${avgLoad}%</div>
-        <div class="sub">sur ${workDays} jours ouvrés</div>
-      </div>
-      <div class="metric">
-        <div class="lbl">Heures de réunion</div>
-        <div class="val">${totalTeamH.toFixed(0)}h</div>
-        <div class="sub">/ ${totalTeamAvail.toFixed(0)}h disponibles</div>
-      </div>
-      <div class="metric">
-        <div class="lbl">Disponibilité totale</div>
-        <div class="val" style="color:#0F6E56">${totalTeamDispo.toFixed(0)}h</div>
-        <div class="sub">équipe complète</div>
-      </div>
-      <div class="metric">
-        <div class="lbl">Événements</div>
-        <div class="val">${totalEvt}</div>
-        <div class="sub">équipe · période</div>
-      </div>
-      <div class="metric">
-        <div class="lbl">Surcharges</div>
-        <div class="val" style="color:${overloadedCount>0?'#a32d2d':'#3b6d11'}">${overloadedCount}</div>
-        <div class="sub">membres concernés</div>
-      </div>
+      <div class="metric"><div class="lbl">Charge moy. équipe</div><div class="val" style="color:${loadColor(avgLoad)}">${avgLoad}%</div><div class="sub">${wd} jours ouvrés · ${WEEK_H}h/sem.</div></div>
+      <div class="metric"><div class="lbl">Heures de réunion</div><div class="val">${totalTeamH.toFixed(0)}h</div><div class="sub">/ ${(acc.length*availH).toFixed(0)}h dispo équipe</div></div>
+      <div class="metric"><div class="lbl">Disponibilité</div><div class="val" style="color:#0F6E56">${totalDispo.toFixed(0)}h</div><div class="sub">restantes équipe</div></div>
+      <div class="metric"><div class="lbl">Surcharges</div><div class="val" style="color:${acc.filter(m=>m.loadPct>=90).length>0?'#a32d2d':'#3b6d11'}">${acc.filter(m=>m.loadPct>=90).length}</div><div class="sub">membres ≥ 90%</div></div>
     </div>
 
-    ${members.some(m=>!m.accessible) ? `<div class="notice"><strong>Non accessibles :</strong> ${members.filter(m=>!m.accessible).map(m=>m.name).join(', ')} — ils doivent partager leur calendrier avec votre compte.</div>` : ''}
+    ${members.some(m=>!m.accessible)?`<div class="notice"><strong>Non accessibles :</strong> ${members.filter(m=>!m.accessible).map(m=>m.name).join(', ')}</div>`:''}
 
     <div class="card">
-      <h2>Charge & disponibilité · base ${WEEK_H}h/semaine</h2>
+      <h2>Charge & disponibilité par membre · base ${WEEK_H}h/semaine</h2>
       <div class="member-grid">
         ${members.map(m => {
-          const lp = m.loadPct;
-          const dp = m.availableH > 0 ? Math.round((m.dispoH / m.availableH)*100) : 0;
-          const st = !m.accessible ? {l:'Non partagé', c:'s-busy'}
-                   : lp >= 90 ? {l:'Surchargé', c:'s-over'}
-                   : lp >= 65 ? {l:'Occupé', c:'s-busy'}
-                   : lp >= 35 ? {l:'Actif', c:'s-ok'}
-                   : {l:'Disponible', c:'s-free'};
-          return `
-          <div class="member-row">
+          const lp=m.loadPct, dp=m.availH>0?Math.round((m.dispoH/m.availH)*100):0;
+          const st=!m.accessible?{l:'Non partagé',c:'s-busy'}:lp>=90?{l:'Surchargé',c:'s-over'}:lp>=65?{l:'Occupé',c:'s-busy'}:lp>=35?{l:'Actif',c:'s-ok'}:{l:'Disponible',c:'s-free'};
+          return `<div class="member-row">
             <div class="avatar" style="background:${m.color}20;color:${m.color}">${m.initials}</div>
-            <div class="member-info">
-              <div class="member-name">${m.name}</div>
-              <div class="member-email">${m.email}</div>
-            </div>
+            <div class="member-info"><div class="member-name">${m.name}</div><div class="member-email">${m.email}</div></div>
             <div class="bars-wrap">
-              <div class="bar-row">
-                <span class="bar-lbl">Charge</span>
-                <div class="bar-track"><div class="bar-fill" style="width:${lp}%;background:${m.color}"></div></div>
-                <span class="bar-val">${m.totalH.toFixed(1)}h</span>
-              </div>
-              <div class="bar-row">
-                <span class="bar-lbl">Dispo</span>
-                <div class="bar-track"><div class="bar-fill" style="width:${dp}%;background:#c0dd97"></div></div>
-                <span class="bar-val">${m.dispoH.toFixed(1)}h</span>
-              </div>
+              <div class="bar-row"><span class="bar-lbl">Charge</span><div class="bar-track"><div class="bar-fill" style="width:${lp}%;background:${m.color}"></div></div><span class="bar-val">${m.totalH.toFixed(1)}h</span></div>
+              <div class="bar-row"><span class="bar-lbl">Dispo</span><div class="bar-track"><div class="bar-fill" style="width:${dp}%;background:#97C459"></div></div><span class="bar-val">${m.dispoH.toFixed(1)}h</span></div>
             </div>
-            <div class="member-right">
-              <span class="status ${st.c}">${st.l}</span>
-              <span class="dispo-val" style="color:${m.color}">${lp}%</span>
-            </div>
+            <div class="member-right"><span class="status ${st.c}">${st.l}</span><span style="font-size:12px;font-weight:500;color:${m.color}">${lp}%</span></div>
           </div>`;
         }).join('')}
       </div>
     </div>
 
-    <div class="row2">
-      <div class="card">
-        <h2>Taux de charge par membre (${currentPeriod === 'week' ? 'par jour' : currentPeriod === 'month' ? 'par semaine' : currentPeriod === 'quarter' ? 'par mois' : 'par trimestre'})</h2>
-        <div class="legend">${members.filter(m=>m.accessible).map(m=>`<div class="legend-item"><div class="legend-dot" style="background:${m.color}"></div>${m.name}</div>`).join('')}</div>
-        <div class="chart-wrap" style="height:200px"><canvas id="lineChart"></canvas></div>
-      </div>
-      <div class="card">
-        <h2>Charge vs disponibilité</h2>
-        <div class="chart-wrap" style="height:200px"><canvas id="donutChart"></canvas></div>
-      </div>
-    </div>
-
-    ${upcoming.length > 0 ? `
     <div class="card">
-      <h2>Prochains événements</h2>
-      <div class="event-list">
-        ${upcoming.map(ev => {
-          const start = new Date(ev.start.dateTime);
-          const m = ev._member;
-          return `<div class="event-item">
-            <div class="event-dot" style="background:${m.color}"></div>
-            <div>
-              <div class="event-title">${ev.summary || '(sans titre)'}</div>
-              <div class="event-meta">${fmtDay(start)} · ${fmtTime(start)} · ${m.name} · ${evDurationH(ev).toFixed(1)}h</div>
-            </div>
-          </div>`;
-        }).join('')}
-      </div>
-    </div>` : ''}
-  `;
+      <h2>Évolution du taux de charge (${currentPeriod==='week'?'par jour':currentPeriod==='month'?'par semaine':currentPeriod==='quarter'?'par mois':'par trimestre'})</h2>
+      <div class="legend">${acc.map(m=>`<div class="legend-item"><div class="legend-dot" style="background:${m.color}"></div>${m.name}</div>`).join('')}</div>
+      <div class="chart-wrap" style="height:200px"><canvas id="c-charge"></canvas></div>
+    </div>`;
 
-  // ── Charts ──────────────────────────────────────────
   setTimeout(() => {
-    // Line/bar chart — taux de charge par sous-période par membre
-    const ctx1 = document.getElementById('lineChart');
-    if (ctx1) {
-      if (chartInst) chartInst.destroy();
-      chartInst = new Chart(ctx1, {
-        type: currentPeriod === 'week' ? 'bar' : 'line',
-        data: {
-          labels: subPeriods.map(sp => sp.label),
-          datasets: members.filter(m=>m.accessible).map((m,i) => ({
-            label: m.name,
-            data: subData.map(sp => sp[i]),
-            backgroundColor: m.color + '55',
-            borderColor: m.color,
-            borderWidth: 2,
-            pointRadius: 3,
-            fill: false,
-            tension: 0.3,
-            borderRadius: 3,
-          }))
-        },
-        options: {
-          responsive: true, maintainAspectRatio: false,
-          plugins: { legend:{ display:false }, tooltip:{ callbacks:{ label: ctx => ` ${ctx.dataset.label}: ${ctx.raw}%` } } },
-          scales: {
-            x: { grid:{ display:false }, ticks:{ font:{size:11}, autoSkip:false, maxRotation:45 } },
-            y: { beginAtZero:true, max:100, grid:{ color:'rgba(0,0,0,0.05)' }, ticks:{ font:{size:11}, callback: v => v+'%' } }
-          }
-        }
-      });
-    }
-
-    // Donut — charge vs dispo équipe
-    const ctx2 = document.getElementById('donutChart');
-    if (ctx2) {
-      if (chartInst2) chartInst2.destroy();
-      const memberH = accessible.map(m => m.totalH);
-      const memberDispo = accessible.map(m => m.dispoH);
-      chartInst2 = new Chart(ctx2, {
-        type: 'bar',
-        data: {
-          labels: accessible.map(m => m.name),
-          datasets: [
-            { label:'Réunions', data: memberH.map(h => +h.toFixed(1)), backgroundColor: accessible.map(m => m.color+'cc'), borderColor: accessible.map(m => m.color), borderWidth:1, borderRadius:3 },
-            { label:'Disponible', data: memberDispo.map(h => +h.toFixed(1)), backgroundColor:'#c0dd9788', borderColor:'#639922', borderWidth:1, borderRadius:3 }
-          ]
-        },
-        options: {
-          responsive:true, maintainAspectRatio:false,
-          plugins: { legend:{ display:true, position:'bottom', labels:{ font:{size:11}, boxWidth:10, padding:12 } } },
-          scales: {
-            x: { stacked:true, grid:{ display:false }, ticks:{ font:{size:11} } },
-            y: { stacked:true, grid:{ color:'rgba(0,0,0,0.05)' }, ticks:{ font:{size:11}, callback: v => v+'h' } }
-          }
-        }
-      });
-    }
+    const ds = acc.map(m => ({
+      label:m.name, borderColor:m.color, backgroundColor:m.color+'44',
+      data: subP.map(sp => {
+        const spH = m.events.filter(ev=>{const d=new Date(ev.start.dateTime);return d>=sp.start&&d<=sp.end;}).reduce((s,ev)=>s+ev._h,0);
+        const spAvail = workDays(sp.start,sp.end)*DAY_H;
+        return spAvail>0?+Math.min(100,(spH/spAvail)*100).toFixed(1):0;
+      }),
+      fill:false, tension:.3, pointRadius:3, borderWidth:2
+    }));
+    mkChart('c-charge', currentPeriod==='week'?'bar':'line', subP.map(sp=>sp.label), ds, { yTickCb:v=>v+'%', yMax:110 });
   }, 50);
 }
 
-function loadColor(pct) {
-  if (pct >= 90) return '#a32d2d';
-  if (pct >= 65) return '#854f0b';
-  if (pct >= 35) return '#185FA5';
-  return '#3b6d11';
+// ── Vue Types de presta ────────────────────────────
+function renderPresta(members, acc, s, e, label) {
+  // Team totals by type
+  const teamByType = {};
+  for (const m of acc) for (const [t,h] of Object.entries(m.byType)) teamByType[t]=(teamByType[t]||0)+h;
+  const teamTotal = Object.values(teamByType).reduce((s,h)=>s+h,0);
+
+  document.getElementById('main-content').innerHTML = `
+    <div class="metrics">
+      ${Object.entries(PRESTA_TYPES).filter(([t])=>teamByType[t]>0).map(([t,p])=>`
+        <div class="metric">
+          <div class="lbl">${p.label}</div>
+          <div class="val" style="color:${p.color}">${(teamByType[t]||0).toFixed(0)}h</div>
+          <div class="sub">${teamTotal>0?Math.round(((teamByType[t]||0)/teamTotal)*100):0}% du total</div>
+        </div>`).join('')}
+    </div>
+
+    <div class="card">
+      <h2>Répartition par type de presta · par membre</h2>
+      <div class="member-grid">
+        ${members.map(m => {
+          if (!m.accessible) return `<div class="member-row"><div class="avatar" style="background:${m.color}20;color:${m.color}">${m.initials}</div><div class="member-info"><div class="member-name">${m.name}</div></div><span style="font-size:12px;color:#888780">Calendrier non partagé</span></div>`;
+          const mTotal = m.totalH||1;
+          const typeEntries = Object.entries(PRESTA_TYPES).filter(([t])=>(m.byType[t]||0)>0);
+          return `<div class="member-row">
+            <div class="avatar" style="background:${m.color}20;color:${m.color}">${m.initials}</div>
+            <div class="member-info"><div class="member-name">${m.name}</div><div class="member-email">${m.totalH.toFixed(1)}h · ${m.totalEvt} évts</div></div>
+            <div class="bars-wrap">
+              <div class="stack-bar">${Object.entries(PRESTA_TYPES).map(([t,p])=>{const h=m.byType[t]||0;const w=mTotal>0?Math.round((h/mTotal)*100):0;return w>0?`<div class="stack-seg" style="width:${w}%;background:${p.color}" title="${p.label}: ${h.toFixed(1)}h (${w}%)"></div>`:''}).join('')}</div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:5px">${typeEntries.map(([t,p])=>`<span class="presta-pill" style="background:${p.bg};color:${p.tc}">${p.label} ${(m.byType[t]||0).toFixed(1)}h</span>`).join('')}</div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h2>Avec client vs sans client</h2>
+        <div class="member-grid">
+          ${acc.map(m => {
+            const total = m.totalH||1;
+            const avecPct = Math.round((m.avecH/total)*100);
+            const sansPct = Math.round((m.sansH/total)*100);
+            return `<div class="member-row">
+              <div class="avatar" style="background:${m.color}20;color:${m.color}">${m.initials}</div>
+              <div class="member-info"><div class="member-name">${m.name}</div></div>
+              <div class="bars-wrap">
+                <div class="bar-row"><span class="bar-lbl" style="color:#0F6E56">Avec</span><div class="bar-track"><div class="bar-fill" style="width:${avecPct}%;background:#1D9E75"></div></div><span class="bar-val">${m.avecH.toFixed(1)}h</span></div>
+                <div class="bar-row"><span class="bar-lbl" style="color:#534AB7">Sans</span><div class="bar-track"><div class="bar-fill" style="width:${sansPct}%;background:#534AB7"></div></div><span class="bar-val">${m.sansH.toFixed(1)}h</span></div>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Répartition équipe par type</h2>
+        <div class="chart-wrap" style="height:220px"><canvas id="c-presta-pie"></canvas></div>
+      </div>
+    </div>`;
+
+  setTimeout(() => {
+    const types = Object.entries(PRESTA_TYPES).filter(([t])=>teamByType[t]>0);
+    mkPie('c-presta-pie', types.map(([t,p])=>p.label), types.map(([t])=>+(teamByType[t]||0).toFixed(1)), types.map(([t,p])=>p.color));
+  }, 50);
 }
 
-// ─── Boot ─────────────────────────────────────────────
-if (getClientId()) { showApp(); }
+// ── Vue Clients ────────────────────────────────────
+function renderClients(members, acc, s, e, label) {
+  // Aggregate all clients across team
+  const allClients = {};
+  for (const m of acc) {
+    for (const [cl, h] of Object.entries(m.byClient)) {
+      if (!allClients[cl]) allClients[cl] = { totalH:0, members:{}, avecH:0, sansH:0, byType:{} };
+      allClients[cl].totalH += h;
+      allClients[cl].members[m.name] = (allClients[cl].members[m.name]||0)+h;
+    }
+  }
+  // Also track avec/sans per client
+  for (const m of acc) {
+    for (const ev of m.events) {
+      if (!ev._client) continue;
+      if (!allClients[ev._client]) allClients[ev._client]={totalH:0,members:{},avecH:0,sansH:0,byType:{}};
+      if (ev._avecClient) allClients[ev._client].avecH+=ev._h;
+      else allClients[ev._client].sansH+=ev._h;
+      allClients[ev._client].byType[ev._type]=(allClients[ev._client].byType[ev._type]||0)+ev._h;
+    }
+  }
+
+  const sorted = Object.entries(allClients).sort((a,b)=>b[1].totalH-a[1].totalH);
+  const maxH = sorted.length ? sorted[0][1].totalH : 1;
+  const totalH = sorted.reduce((s,[,c])=>s+c.totalH,0);
+
+  document.getElementById('main-content').innerHTML = `
+    <div class="metrics">
+      <div class="metric"><div class="lbl">Clients actifs</div><div class="val">${sorted.length}</div><div class="sub">sur la période</div></div>
+      <div class="metric"><div class="lbl">Total heures clients</div><div class="val">${totalH.toFixed(0)}h</div><div class="sub">hors INTERNE</div></div>
+      <div class="metric"><div class="lbl">Client top</div><div class="val" style="font-size:16px">${sorted[0]?sorted[0][0]:'–'}</div><div class="sub">${sorted[0]?sorted[0][1].totalH.toFixed(1)+'h':''}</div></div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h2>Charge par client</h2>
+        ${sorted.length === 0 ? `<div style="font-size:13px;color:#73726c">Aucun client trouvé — vérifiez la convention de nommage.</div>` :
+        `<table class="client-table">
+          <thead><tr><th>Client</th><th>Heures</th><th>%</th><th>Avec/Sans</th><th>Membres</th></tr></thead>
+          <tbody>
+            ${sorted.map(([cl,c])=>`
+              <tr>
+                <td><span class="client-name">${cl}</span></td>
+                <td>
+                  <div class="mini-bar-wrap"><div class="mini-bar-track"><div class="mini-bar-fill" style="width:${Math.round((c.totalH/maxH)*100)}%"></div></div></div>
+                  <span style="font-size:12px">${c.totalH.toFixed(1)}h</span>
+                </td>
+                <td style="font-size:12px;color:#73726c">${totalH>0?Math.round((c.totalH/totalH)*100):0}%</td>
+                <td><span class="presta-pill avec" style="font-size:10px">${c.avecH.toFixed(0)}h avec</span> <span class="presta-pill sans" style="font-size:10px">${c.sansH.toFixed(0)}h sans</span></td>
+                <td style="font-size:11px;color:#73726c">${Object.entries(c.members).sort((a,b)=>b[1]-a[1]).map(([n,h])=>`${n.split(' ')[0]} ${h.toFixed(0)}h`).join(' · ')}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>`}
+      </div>
+
+      <div class="card">
+        <h2>Répartition par client</h2>
+        <div class="chart-wrap" style="height:${Math.max(200, sorted.length*32+60)}px"><canvas id="c-clients"></canvas></div>
+      </div>
+    </div>`;
+
+  setTimeout(() => {
+    if (!sorted.length) return;
+    mkHBar('c-clients', sorted.map(([cl])=>cl), sorted.map(([,c])=>+c.totalH.toFixed(1)), '#534AB7');
+  }, 50);
+}
+
+// ── Vue Agenda ─────────────────────────────────────
+function renderAgenda(members) {
+  const now = new Date();
+  const {s,e} = getRange();
+  const all = members.flatMap(m=>(m.events||[]).map(ev=>({...ev,_member:m})))
+    .filter(ev=>ev.start&&ev.start.dateTime)
+    .sort((a,b)=>new Date(a.start.dateTime)-new Date(b.start.dateTime));
+
+  const upcomingAll = all.filter(ev=>new Date(ev.start.dateTime)>=now);
+  const past = all.filter(ev=>new Date(ev.start.dateTime)<now);
+
+  document.getElementById('main-content').innerHTML = `
+    <div class="card">
+      <h2>Prochains événements (${upcomingAll.length})</h2>
+      ${upcomingAll.length===0?`<div style="font-size:13px;color:#73726c">Aucun événement à venir sur cette période.</div>`:''}
+      <div class="event-list">
+        ${upcomingAll.slice(0,20).map(ev=>{
+          const start=new Date(ev.start.dateTime), m=ev._member;
+          const tp=PRESTA_TYPES[ev._type]||PRESTA_TYPES.AUTRE;
+          return `<div class="event-item">
+            <div class="event-dot" style="background:${m.color}"></div>
+            <div style="flex:1">
+              <div class="event-title">${ev._raw}</div>
+              <div class="event-meta">${fmtDay(start)} · ${fmtTime(start)} · ${ev._h.toFixed(1)}h · ${m.name}</div>
+              <div class="event-tags">
+                <span class="etag" style="background:${tp.bg};color:${tp.tc}">${tp.label}</span>
+                ${ev._client?`<span class="etag" style="background:#e6f1fb;color:#185FA5">${ev._client}</span>`:''}
+                <span class="etag" style="background:${ev._avecClient?'#E1F5EE':'#EEEDFE'};color:${ev._avecClient?'#085041':'#3C3489'}">${ev._avecClient?'Avec client':'[P] Sans client'}</span>
+              </div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    ${past.length>0?`<div class="card">
+      <h2>Événements passés sur la période (${past.length})</h2>
+      <div class="event-list">
+        ${past.slice(-15).reverse().map(ev=>{
+          const start=new Date(ev.start.dateTime), m=ev._member;
+          const tp=PRESTA_TYPES[ev._type]||PRESTA_TYPES.AUTRE;
+          return `<div class="event-item" style="opacity:.7">
+            <div class="event-dot" style="background:${m.color}"></div>
+            <div style="flex:1">
+              <div class="event-title">${ev._raw}</div>
+              <div class="event-meta">${fmtDay(start)} · ${fmtTime(start)} · ${ev._h.toFixed(1)}h · ${m.name}</div>
+              <div class="event-tags">
+                <span class="etag" style="background:${tp.bg};color:${tp.tc}">${tp.label}</span>
+                ${ev._client?`<span class="etag" style="background:#e6f1fb;color:#185FA5">${ev._client}</span>`:''}
+              </div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`:''}`;
+}
+
+// ═══ Chart helpers ══════════════════════════════════
+function destroyCharts() {
+  for (const c of Object.values(charts)) { try { c.destroy(); } catch(e){} }
+  charts = {};
+}
+function mkChart(id, type, labels, datasets, opts={}) {
+  const ctx = document.getElementById(id); if(!ctx)return;
+  charts[id] = new Chart(ctx, {
+    type,
+    data: { labels, datasets },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false} },
+      scales:{
+        x:{ grid:{display:false}, ticks:{font:{size:11},autoSkip:false,maxRotation:45} },
+        y:{ beginAtZero:true, max:opts.yMax||undefined, grid:{color:'rgba(0,0,0,0.05)'}, ticks:{font:{size:11},callback:opts.yTickCb||(v=>v)} }
+      }
+    }
+  });
+}
+function mkPie(id, labels, data, colors) {
+  const ctx=document.getElementById(id); if(!ctx)return;
+  charts[id]=new Chart(ctx,{
+    type:'doughnut',
+    data:{labels,datasets:[{data,backgroundColor:colors,borderWidth:2,borderColor:'#fff'}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'55%',plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:10,padding:10}}}}
+  });
+}
+function mkHBar(id, labels, data, color) {
+  const ctx=document.getElementById(id); if(!ctx)return;
+  charts[id]=new Chart(ctx,{
+    type:'bar',
+    data:{labels,datasets:[{data,backgroundColor:color+'bb',borderColor:color,borderWidth:1,borderRadius:3}]},
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{grid:{color:'rgba(0,0,0,0.05)'},ticks:{font:{size:11},callback:v=>v+'h'}},
+        y:{grid:{display:false},ticks:{font:{size:11}}}
+      }
+    }
+  });
+}
+
+// ═══ Boot ══════════════════════════════════════════
+if (getClientId()) showApp();
 else {
   document.getElementById('setup-screen').style.display = 'flex';
   document.getElementById('app-screen').style.display = 'none';
